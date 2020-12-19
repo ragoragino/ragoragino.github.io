@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Builder"
+title:  "Design Patterns in the Wild: Builder"
 date:   2020-12-15 21:09:59 +0100
 categories: Design Patterns in the Wild
 ---
@@ -10,21 +10,21 @@ Intent; "_Use the builder pattern to encapsulate the construction of a product a
 
 A successful application of a builder pattern always starts with realizing that we are trying to create an object that is highly configurable. We could use a simple constructor to pass all the arguments, but we might end up with a huge amount of parameters that need to be fed into it. So, the standard solution to this problem is defining a separate class that will provide methods for configuring the object. We will gain not only the clarity of the construction of our target object. The pattern also gives us a possibility to vary the order of application of different options and even a chance to separate the application of different options into non-consecutive steps. 
 
-So we have setup our basic framework - we have one target class (or even better an interface) and one builder class (or also an interface). Clients will always only interact with the builder. After initializing it, they will set all the desired options on it, and at the end, they will call some method that will return an instance of the target class. That way we are able to hide all the implementation details about the target class from the client. As a result, we are even able to switch the implementations when needed. 
+So we have established our basic framework - we have one target class (or even better an interface) and one builder class (or also an interface). Clients will always only interact with the builder. After initializing it, they will set all the desired options on it, and at the end, they will call some method that will return an instance of the target class. That way we are able to hide all the implementation details about the target class from the client. As a result, we are even able to switch the implementations when needed. 
 
 **x509 Certificates**
 
-The use case I have chosen for the builder pattern is a generation of public key infrastructure objects by a Python x509 library. I will make the case only for the x509 certificates, but a similar logic applies to other classes the library implements (like certificate signing requests or certificate revocation lists). PKI certificates are certificates that are the backbone of (not only) internet security and provide a mechanism for participants to verify authenticity of peers. When your internet browser wants to securely talk to some domain, it will firstly ask the webserver behind to domain to send its public certificate. After obtaining it, the browser will try to validate that the sent certificate was signed by a Certificate Authority the browser trusts (these CA certificates are bundled together with a browser). 
+The use case I have chosen for the builder pattern is a generation of public key infrastructure objects by a Python x509 library. I will make the case only for the x509 certificates, but a similar logic applies to other classes the library implements (like certificate signing requests or certificate revocation lists). PKI certificates are certificates that are the backbone of (not only) internet security and provide a mechanism for participants to verify the authenticity of peers. When your internet browser wants to securely talk to some domain, it will start by asking the webserver behind to domain to send its public certificate. After obtaining it, the browser will try to validate that the sent certificate was signed by a Certificate Authority the browser trusts (these CA certificates are bundled together with a browser). 
 
-Each x509 certificate needs to contain a public key itself, a subject name (i.e. some identification of the certificate holder), serial number, start and end dates of its validity, details about issuer of the certificate, algorithm of the certificate's signature and some more options. There are also some fields that are non-configurable but are added to the certificate, like signature of the certificate that is created by the issuer and serves as a stamp the will give clients the guarantee that they can trust the certificate (if they already trust the issuer). A large majority of language-specific crypto libraries will bind to some battle-tested cryptographic C/C++ implementations, like OpenSSL or BoringSSL, to sign certificates (there are some exceptions, like Golang, that contains its own full-fledge crypthographic library).
+Each x509 certificate needs to contain a public key itself, a subject name (i.e. some identification of the certificate holder), serial number, start and end dates of its validity, details about the issuer of the certificate, algorithm of the certificate's signature, and some more options. There are also some fields that are non-configurable but are added to the certificate, like the signature of the certificate that is created by the issuer and serves as a stamp the will give clients the guarantee that they can trust the certificate (if they already trust the issuer). A large majority of language-specific crypto libraries will bind to some battle-tested cryptographic C/C++ implementations, like OpenSSL or BoringSSL, to sign certificates (there are some exceptions, like Golang, that contains its own full-fledge cryptographic library).
 
 **Python x509 library**
 
-How could we approach modelling this functionality of issuing valid PKI certificates as hypothetical authors of the x509 library? We might start with thinking that we could create a single class Certificate that will contain methods to get and set values on individual attributes. However, as we said, some attributes  (like certificate's signature) of the certificates are generated and are therefore read-only. Differentiating these read-only and write-only attributes could create a significant confusion amount the users of our library. These read-only attributes are only possible to obtain after signing the certificate, therefore the class would contain attributes that would make sense only after some specific method of the certificate is called. This doesn't sound very pretty. 
+How could we approach modeling this functionality of issuing valid PKI certificates as hypothetical authors of the x509 library? We might start with thinking that we could create a single class Certificate that will contain methods to get and set values on individual attributes. However, as we said, some attributes  (like the certificate's signature) of the certificates are generated and are therefore read-only. Differentiating these read-only and write-only attributes could create significant confusion amount the users of our library. These read-only attributes are only possible to obtain after signing the certificate, therefore the class would contain attributes that would make sense only after some specific method of the certificate is called. This doesn't sound very pretty. 
 
 What about using a builder pattern here - we have a lot of configuration options and we could use the split between building a certificate and the certificate object itself to demarcate precisely what are read-only and write-only attributes. Our design might therefore consist of Certificate and CertificateBuilder components.
 
-Certificate class will be read-only and will be the result of the certificate signing. It can store all its attributes directly or it can lazily fetch its attributes from the underlying cryptographic implementation by passing the generated certificate (which are always able to fully parse a valid crypthographic objects) for the purposes of memory and performance efficiency. To operate Certificate class we will need another class that we can call CertificateBuilder and that will be used to setup options for the certificate. When the clients will need to fetch the final certificate, they will call a method of CertificateBuilder that will return the signed certificate. Due to the fact that we might want so support multiple signing backends (it might be because of performance reasons, or due to some platform specific requirements), we might create a Certificate interface (or ABC in Python's lingo) that will be implemented by different backends. So a UML diagram from an asiring young artist might look like this:
+Certificate class will be read-only and will be the result of the certificate signing. It can store all its attributes directly or it can lazily fetch its attributes from the underlying cryptographic implementation by passing the generated certificate bytes for the purposes of memory and performance efficiency. To operate the Certificate class we will need another class that we can call CertificateBuilder and that will be used to set up options for the certificate. When the clients will need to fetch the final certificate, they will call a method of CertificateBuilder that will return the signed certificate. Due to the fact that we might want to support multiple signing backends (it might be because of performance reasons, or due to some platform-specific requirements), we might create a Certificate interface (or ABC in Python's lingo) that will be implemented by different backends. So a UML diagram from an aspiring young artist might look like this:
 
 ![UML diagram](/assets/images/designpatternsinthewild/builder/uml.png)
 
@@ -101,49 +101,71 @@ class CertificateBuilder(object):
         return backend.create_x509_certificate(self, private_key, algorithm)
 ```
 
-I have removed all methods that prepare certificate's attributes except issuer_name, because they are resemble each other in their internal logic. These functions check whether the provided arguments are valid, and if they are, a new CertificateBuilder instance is returned. I am not completely sure why the authors decided to return a completely new instance in contrast to returning just self, but I suppose that it might be connected with their desire to provide users the posibility to easily create multiple certificates that have a lot of attributes in common. 
+I have removed all methods that prepare certificate's attributes except issuer_name, because they resemble each other in their internal logic. These functions check whether the provided arguments are valid, and if they are, a new CertificateBuilder instance is returned. I am not completely sure why the authors decided to return a completely new instance in contrast to returning just self, but I suppose that it might be connected with their desire to provide users the possibility to easily create multiple certificates that have a lot of attributes in common. 
 
-At the end, we can see the sign method that will firstly check the validity of certificate attributes and then return the signed Certificate by calling backend's create_x509_certificate method. Backend is just some implementation of X509Backend interface (ABC), currently used backend is just a wrapper around an OpenSSL library (https://github.com/pyca/cryptography/blob/master/src/cryptography/hazmat/backends/interfaces.py). create_x509_certificate method returns an instance of x509.Certificate (https://github.com/pyca/cryptography/blob/master/src/cryptography/x509/base.py#L102) interface (https://github.com/pyca/cryptography/blob/master/src/cryptography/hazmat/backends/openssl/x509.py), that is also backend-specific. Authors of Python's x509 have decided to fetch certificate's fields lazily, in my guess, to optimize memory and performance efficiency as the majority of users will need only to access a restricted set of attributes.
+At the end of the code excerpt, we can see the sign method that will firstly check the validity of certificate attributes and then return the signed Certificate by calling the backend's create_x509_certificate method. Backend is just some implementation of X509Backend interface and a currently used backend is just a wrapper around an OpenSSL library. create_x509_certificate method returns an instance of x509.Certificate interface, which is also backend-specific. Authors of Python's x509 have decided to fetch certificate fields lazily, so for most of the attributes of the certificate implementation, you can see the calls to the underlying library wrapper. My guess why the authors decided not to load all the parameters of the certificate is to optimize memory and performance efficiency as the majority of users will need only to access a restricted set of attributes.
 
-And an example of how the library can be used is here (https://cryptography.io/en/latest/x509/reference.html#x-509-certificate-builder):
+Possible user interaction with the library is shown below. I reproduce here only a part of the code where I generate a server certificate, but the whole snippet containing also a generation of a CA and subsequent start of an HTTP server [can be found here](https://github.com/ragoragino/ragoragino.github.io/blob/a1c6b761518de7fbee8832ff335e557296f7020f/assets/code/designpatternsinthewild/builder/example.py#L1).
 
 ```python
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
-import datetime
-one_day = datetime.timedelta(1, 0, 0)
-private_key = rsa.generate_private_key(
-     public_exponent=65537,
-     key_size=2048,
+# Generate the server's RSA public-private key pair
+server_rsa = rsa.generate_private_key(
+      public_exponent=65537,
+      key_size=2048,
 )
-public_key = private_key.public_key()
-builder = x509.CertificateBuilder()
-builder = builder.subject_name(x509.Name([
-     x509.NameAttribute(NameOID.COMMON_NAME, u'cryptography.io'),
-]))
-builder = builder.issuer_name(x509.Name([
-    x509.NameAttribute(NameOID.COMMON_NAME, u'cryptography.io'),
-]))
-builder = builder.not_valid_before(datetime.datetime.today() - one_day)
-builder = builder.not_valid_after(datetime.datetime.today() + (one_day * 30))
-builder = builder.serial_number(x509.random_serial_number())
-builder = builder.public_key(public_key)
-builder = builder.add_extension(
-     x509.SubjectAlternativeName(
-        [x509.DNSName(u'cryptography.io')]
-    ),
-    critical=False
+
+# Generate the server's certificate
+server_cert_name = x509.Name(
+    [x509.NameAttribute(NameOID.COUNTRY_NAME, "CZ"),
+      x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Prague"),
+      x509.NameAttribute(NameOID.LOCALITY_NAME, "Prague"),
+      x509.NameAttribute(NameOID.ORGANIZATION_NAME, "DesignPatternsInTheWild"),
+      x509.NameAttribute(NameOID.COMMON_NAME, "DesignPatternsInTheWildServer")]
 )
-builder = builder.add_extension(
-     x509.BasicConstraints(ca=False, path_length=None), critical=True,
-)
-certificate = builder.sign(
-    private_key=private_key, algorithm=hashes.SHA256(),
+server_certificate_duration = 30 * datetime.timedelta(1, 0, 0)
+server_certificate = (
+    x509.CertificateBuilder()
+        .subject_name(x509.Name(server_cert_name))
+        .issuer_name(issuer_certificate.subject)
+        .not_valid_before(datetime.datetime.today() - datetime.timedelta(1, 0, 0))
+        .not_valid_after(datetime.datetime.today() + server_certificate_duration)
+        .public_key(server_rsa.public_key())
+        .serial_number(x509.random_serial_number())
+        .add_extension(
+        x509.BasicConstraints(
+            ca=False,
+            path_length=None
+        ),
+        critical=True,
+    )
+        .add_extension(
+        x509.ExtendedKeyUsage([x509.ExtendedKeyUsageOID.SERVER_AUTH]),
+        critical=False,
+    )
+        .add_extension(
+          x509.SubjectAlternativeName([x509.DNSName(u'localhost')]),
+        critical=True,
+    )
+        .add_extension(
+        x509.KeyUsage(
+            digital_signature=True,
+            content_commitment=False,
+            key_encipherment=False,
+            data_encipherment=True,
+            key_agreement=True,
+            key_cert_sign=False,
+            crl_sign=False,
+            encipher_only=False,
+            decipher_only=False,
+        ),
+        critical=False,
+    )
+        .sign(private_key=issuer_rsa, algorithm=hashes.SHA256())
 )
 ```
 
-We start with generating a private key instance. Then we initialize new CertificateBuilder, on which we set attributes of the desired certificate. At the end, we just call a sign method, that will return the final certificate. Using builder pattern for generating and signing certificates allowed us to specify individual certificate attributes in a very straightforward manner, while also keeping a clear distinction between settable and readable attributes of the certificate.
+The snippet starts with generating a private key instance. Then we initialize a new CertificateBuilder, on which we set attributes of the desired certificate. In the end, we just call a sign method, which will return the final certificate. We can see how we are able to chain the methods for specifying the certificate's attributes.
 
-Source: Python Cryptography Library: https://cryptography.io/en/latest/x509/reference.html
+To summarize, using builder pattern for generating and signing certificates allowed us to specify individual certificate attributes in a very straightforward manner, while also keeping a clear distinction between settable and readable attributes of the certificate.
+
+Source: [Python Cryptography Library](https://cryptography.io/en/latest/x509/reference.html)
