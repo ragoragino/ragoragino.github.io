@@ -2,7 +2,7 @@
 layout: post
 title:  "Design Patterns in the Wild: Builder"
 date:   2020-12-15 21:09:59 +0100
-categories: Design Patterns in the Wild
+categories: SoftwareEngineering DesignPatternsInTheWild
 ---
 **Builder**
 

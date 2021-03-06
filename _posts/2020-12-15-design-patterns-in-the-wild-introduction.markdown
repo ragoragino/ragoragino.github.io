@@ -2,7 +2,7 @@
 layout: post
 title:  "Design Patterns in the Wild: Introduction"
 date:   2020-12-15 21:09:59 +0100
-categories: Design Patterns in the Wild
+categories: SoftwareEngineering DesignPatternsInTheWild
 ---
 I remember my first more in-depth encounter with design patterns was when I was preparing for interviews for my first programming job. My sources were either Gang Of Four's Design Patterns (GoF), Head First Design Patterns (HDFP), or some internet tutorials and Youtube videos. Rummaging through these sources left me quite perplexed. The examples used were either quite arcane or laughingly trivial. I either had to grapple with some obtuse GUI terminology or just leaf through some examples that concerned baking pizza or elephants being turned into ducks. In both cases, I was left without any intuition about how real-life systems might take advantage of these design patterns. Fortunately, during junior interviews, you are mostly asked to enumerate and simply describe a selection of design patterns, therefore, you never need to thoroughly understand the logic and the places when it might be appropriate to use the pattern. So, as a junior engineer, you might very soon forget them and think that they are some useless academic exercise or historical programming artifacts of some long-forgotten languages. Or that is at least how I felt. 
 
