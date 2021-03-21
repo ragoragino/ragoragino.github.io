@@ -30,3 +30,6 @@ TARGET_LINK_LIBRARIES(compressorShared
 
 INSTALL(TARGETS compressorShared
         LIBRARY DESTINATION lib)
+
+SET_TARGET_PROPERTIES(compressorShared 
+    PROPERTIES OUTPUT_NAME compressor)
