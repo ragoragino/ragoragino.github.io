@@ -1,7 +1,7 @@
 package main
 
 // #cgo CFLAGS: -I${SRCDIR}/compressor
-// #cgo LDFLAGS: -static -lcompressor -lz
+// #cgo LDFLAGS: -lcompressor -lz
 // #include <stdlib.h>
 // #include "compressor.h"
 import "C"
@@ -19,5 +19,5 @@ func DoCompress(payload []byte) []byte {
 	}
 
 	// TODO: We should check that resultPtr.length can be cast to int
-    return C.GoBytes(unsafe.Pointer(resultPtr.output), C.int(resultPtr.length))
+	return C.GoBytes(unsafe.Pointer(resultPtr.output), C.int(resultPtr.length))
 }
