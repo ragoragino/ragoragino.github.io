@@ -1,3 +1,9 @@
+---
+layout: post
+title:  "Static Linking of cgo programs"
+date:   2021-03-23 16:55:00 +0100
+categories: SoftwareEngineering Miscellaneous
+---
 In one of my previous articles I have demonstrated how to statically link C++ programs. I have mentioned that static compilation is quite easy for Golang in comparison to C++. However, I wanted to try how cgo fares in this respect. cgo handles compilation of C (C++) and Go programs together. It doesn't do that by itself, but it needs external compiler (and under some circumstances also linker) to achieve that. Therefore, most of the requirements for fully static linking for C/C++ apply here, i.e. we need to use non-glibc based compilation toolchain (like Alpine's musl) in order to obtain a fully statically linked binary. 
 
 So I have tried statically linking a simple cgo program, that has a C interface exporting a compress function (which itself just calls zlib's compression algorithm). This C part will be compiled as a C static library that Go part (importer.go) will wrap. In the main.go, I will just compress a string by calling the C interface and then decompress it by calling into Go's zlib library. At the end, I just check that the result is equal to the original string.
