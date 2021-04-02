@@ -20,7 +20,7 @@ For programs that can have dynamic dependencies, they resolved the situation by 
 main(.text): relocation target compressData not defined
 ```
 
-That's a reasonable error message, as go linker doesn't have any knowledge about the compressData because this function is not present in the list of dynamic symbols needed by the generated C source. However, by changing my compressor library to be built dynamically, this starts to work, as \_cgo\_.o object file created by the gcc contains the dynamic reference to compressData:
+That's a reasonable error message, as go linker doesn't have any knowledge about compressData (that originates from the C part of the module) because this function is not present in the list of dynamic symbols needed by the generated C source. However, by changing my compressor library to be built dynamically, this starts to work, as \_cgo\_.o object file created by the gcc contains the dynamic reference to compressData:
 
 ```console
 bash-5.1# readelf --dyn-sym _cgo_.o
@@ -73,7 +73,7 @@ Symbol table '.dynsym' contains 36 entries:
      ...
 ```
 
-The most difficult part of the job is therefore left to the system dynamic loader. This mode has the advantage that an external linker is not needed after the package is compiled. Cgo authors mention that for example, net package uses libc in the C part and that users do not need to have gcc installed in order to use the package. It is just necessary to have a proper object file compiled for that particular architecture and OS (which is transparently imported as part of Go's standard library in case of net package).
+The most difficult part of the job is therefore left to the system dynamic linker that resolves the addresses at runtime. This mode has the advantage that external (non-dynamic) linker is not needed after the package is compiled. Cgo authors mention that for example, net package uses libc in the C part and that users do not need to have gcc installed in order to use the package. It is just necessary to have a proper object file compiled for that particular architecture and OS (which is transparently imported as part of Go's standard library in case of net package).
 
 When dynamic dependencies are not available (or cannot be used), then an external linking mode is required. In this case, the linking stage is left to the system linker (like gcc's ld), which already has a complete understanding of the ELF format. Go compiler just creates basic ELF object files from Go source files, so the output of Go build process can be passed to the system linker. However, the translation of dynamic references (\_cgo\_.o to \_cgo\_import.go) is still executed during the external linking stage. The reasoning is succinctly summarized by Go authors: "This conflict between functionality and the gcc requirement means we must support both internal and external linking, depending on the circumstances: if net is the only cgo-using package, then internal linking is probably fine, but if other packages are involved, so that there are dependencies on libraries beyond libc, external linking is likely to work better. The compilation of a package records the relevant information to support both linking modes, leaving the decision to be made when linking the final binary." So Go decides on the fly which linking mode to use (except when specified explicitly with the linkmode option)!
 

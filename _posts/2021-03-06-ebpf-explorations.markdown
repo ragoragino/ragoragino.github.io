@@ -59,10 +59,10 @@ static inline struct iphdr *skb_to_iphdr(const struct sk_buff *skb)
 }
 
 int ip_rcv_core_exit(struct pt_regs *ctx) {
-	const struct sk_buff *skb = (struct sk_buff *)PT_REGS_RC(ctx);
-	if (skb == 0) {
-		return 0;	// ip_rcv_core failed
-	}
+    const struct sk_buff *skb = (struct sk_buff *)PT_REGS_RC(ctx);
+    if (skb == 0) {
+        return 0;	// ip_rcv_core failed
+    }
 
     const struct iphdr *iph = skb_to_iphdr(skb);
 
@@ -75,7 +75,7 @@ int ip_rcv_core_exit(struct pt_regs *ctx) {
         events.perf_submit(ctx, &data, sizeof(data));
     }  
 
-	return 0;
+    return 0;
 }
 ```
 
@@ -125,6 +125,7 @@ Some additional sources about the topic:
 * <https://www.privateinternetaccess.com/blog/linux-networking-stack-from-the-ground-up-part-1/> (a brutally detailed journey of a packet through the Linux networking stack)
 * <https://epickrram.blogspot.com/2016/05/navigating-linux-kernel-network-stack_18.html> (a more brain-friendly journey of a packet through the Linux networking stack)
 * <https://mcorbin.fr/pages/xdp-introduction/> and <https://duo.com/labs/tech-notes/writing-an-xdp-network-filter-with-ebpf> (some networking filtering examples using express data path, XDP)
+* https://sysdig.com/blog/the-art-of-writing-ebpf-programs-a-primer/ (a good intro to low-level details of writing raw BPF programs)
 
 Foonotes:
 
