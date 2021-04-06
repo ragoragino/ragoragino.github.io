@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "eBPF explorations"
+title:  "eBPF Explorations"
 date:   2021-03-06 11:44:00 +0100
 categories: SoftwareEngineering Miscellaneous
 ---

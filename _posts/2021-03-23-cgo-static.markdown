@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Static linking of cgo programs"
+title:  "Static Linking of cgo Programs"
 date:   2021-03-23 16:55:00 +0100
 categories: SoftwareEngineering Miscellaneous
 ---
