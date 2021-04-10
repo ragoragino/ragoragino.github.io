@@ -64,10 +64,13 @@ As we can see, the container was assigned an eth0 interface with an IPv4 address
 We can also see the other end of the veth pair in the default namespace (we can notice that its master interface is docker0):
 
 ```console
+$ ip address
+...
 20: veth47472ba@if19: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
     link/ether c6:9a:a9:9e:1b:53 brd ff:ff:ff:ff:ff:ff link-netnsid 0
     inet6 fe80::c49a:a9ff:fe9e:1b53/64 scope link 
        valid_lft forever preferred_lft forever
+...
 ```
 
 A similar summary can be also obtained with native Docker commands:
