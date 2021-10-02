@@ -5,7 +5,7 @@ date:   2021-10-02 13:37:00 +0100
 categories: SoftwareEngineering Miscellaneous
 ---
 
-In the last article, we have seen what are coroutines and what are the differences between stackless and stackful coroutines. Today, we will move on and will take a look at how one can take advantage of the facilities provided by Linux to achieve great performance for IO-bound programs.   
+In [the last article](https://ragoragino.github.io/softwareengineering/miscellaneous/2021/10/02/cpp-coroutines-2.html), we have seen what are coroutines and what are the differences between stackless and stackful coroutines. Today, we will move on and will take a look at how one can take advantage of the facilities provided by Linux to achieve great performance for IO-bound programs.   
 
 Userspace processes usually take advantage of the OS's networking API as writing a separate networking implementation is an absolutely non-trivial task. As a result, they need kernel support to receive information on whether file descriptors are ready for IO operations. On Unix systems, `select` and `poll` were traditional Unix syscalls that userspace processes queried for updates on file descriptor's IO state. However, they were largely superseded by newer syscall families, like `epoll` on Linux or `kqueue` on BSD, which constitute the current standard.
 
@@ -71,8 +71,10 @@ We start by creating the epoll file descriptor instance (`epoll_create`), and th
 
 Although epoll seems like a really helpful kernel sycall family, it has its own issues. The first one concerns getting multi-threaded epoll waiting right. If one would like to call `epoll_wait` from multiple threads, it is very easy to get into race conditions without some additional flags passed when registering file descriptors. The other issue is that epoll implementation actually doesn't view registered objects as file descriptors, but as their kernel counterparts (so-called file descriptons). This can cause subtle bugs where a file descriptor might be closed, but the epoll instance is still listening as the underlying kernel object is alive. The solution is to always deregister a file descriptor by calling `epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd)` before closing it. A wonderful exposition of these issues can be found in these articles of Marek Majkowski, [part 1](https://idea.popcount.org/2017-02-20-epoll-is-fundamentally-broken-12/) and [part 2](https://idea.popcount.org/2017-03-20-epoll-is-fundamentally-broken-22/).
 
+After having gone through the coroutine theory and epoll, we are finally ready to tackle the main task at hand. [The last article of the series](https://ragoragino.github.io/softwareengineering/miscellaneous/2021/10/02/cpp-coroutines-4.html) will show you a possible implementation of a TCP server using everything we have learned so far.
+
 **Sources** \
-https://unixism.net/2019/04/linux-applications-performance-introduction/ \
-https://jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll/ \
-https://idea.popcount.org/2017-02-20-epoll-is-fundamentally-broken-12/ \
-https://idea.popcount.org/2017-03-20-epoll-is-fundamentally-broken-22/
+[https://unixism.net/2019/04/linux-applications-performance-introduction/](https://unixism.net/2019/04/linux-applications-performance-introduction/) \
+[https://jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll/](https://jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll/) \
+[https://idea.popcount.org/2017-02-20-epoll-is-fundamentally-broken-12/](https://idea.popcount.org/2017-02-20-epoll-is-fundamentally-broken-12/) \
+[https://idea.popcount.org/2017-03-20-epoll-is-fundamentally-broken-22/](https://idea.popcount.org/2017-03-20-epoll-is-fundamentally-broken-22/)

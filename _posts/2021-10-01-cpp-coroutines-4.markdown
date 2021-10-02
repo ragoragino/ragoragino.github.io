@@ -5,7 +5,7 @@ date:   2021-10-02 13:38:00 +0100
 categories: SoftwareEngineering Miscellaneous
 ---
 
-So, we have worked our way through the coroutine theory and epoll system calls and finally, we are ready to apply this knowledge to our task of writing an async server. In this article, we will take a look at the C++20 interface for writing coroutines and show a possible implementation of the TCP server that takes advantage of coroutines and epoll in order to provide relatively high-performant handling of client requests.  
+So, we have worked our way through [the coroutine theory](https://ragoragino.github.io/softwareengineering/miscellaneous/2021/10/02/cpp-coroutines-2.html) and [epoll system call family](https://ragoragino.github.io/softwareengineering/miscellaneous/2021/10/02/cpp-coroutines-3.html) and finally, we are ready to apply this knowledge to our task of writing an async server. In this article, we will take a look at the C++20 interface for writing coroutines and show a possible implementation of the TCP server that takes advantage of coroutines and epoll in order to provide relatively high-performant handling of client requests.  
 
 I will be targeting a general overview of the mechanics of C++ coroutines with the use case of an async server, so for the sake of time and space, several of the intricacies of the language feature won't be delved into here. I encourage interested readers to look at the library code itself and continue with reading articles summarised in the references (I would highly recommend going through Lewis Baker's ones as they do a great job of explaining all the potential implementation pitfalls).
 
@@ -255,7 +255,7 @@ I will also briefly mention how coroutines get destructed. When a coroutine is d
 Perfect, so we have sketched the lifecycle of a coroutine and all the objects that participate in suspending and resuming it. We have seen how it all comes together and how it allows us to implement a simple asynchronous TCP server. I can imagine the last piece of this series might have been quite dense, so I encourage you to either go through [the source code](https://github.com/ragoragino/acairo) or take a look at the sources below.
 
 **Sources** \
-https://blog.panicsoftware.com/coroutines-introduction/ \
-https://lewissbaker.github.io/2017/09/25/coroutine-theory/ \
-http://www.vishalchovatiya.com/cpp20-coroutine-under-the-hood/ \
-https://luncliff.github.io/coroutine/ppt/[Eng]ExploringTheCppCoroutine.pdf
+[https://blog.panicsoftware.com/coroutines-introduction/](https://blog.panicsoftware.com/coroutines-introduction/) \
+[https://lewissbaker.github.io/2017/09/25/coroutine-theory/](https://lewissbaker.github.io/2017/09/25/coroutine-theory/) \
+[http://www.vishalchovatiya.com/cpp20-coroutine-under-the-hood/](http://www.vishalchovatiya.com/cpp20-coroutine-under-the-hood/) \
+[https://luncliff.github.io/coroutine/ppt/[Eng]ExploringTheCppCoroutine.pdf](https://luncliff.github.io/coroutine/ppt/[Eng]ExploringTheCppCoroutine.pdf)

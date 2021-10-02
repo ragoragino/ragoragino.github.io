@@ -1,11 +1,13 @@
 ---
 layout: post
-title:  "Implementing a TCP server with C++ coroutines: Part II: Coroutine Theory"
+title:  "Implementing a TCP server with C++ coroutines. Part II: Coroutine Theory"
 date:   2021-10-02 13:36:00 +0100
 categories: SoftwareEngineering Miscellaneous
 ---
 
-To start our journey of writing an async TCP server, we might want to understand how asynchronous code might work with coroutines. Asynchronous code might be implemented in multiple ways. The first approach is to rely on the OS. This would entail calling blocking OS system calls (like `read` or `write`) and letting the OS scheduler park waiting threads. However, context-switching between threads is an expensive operation, as it involves saving a couple of CPU registers and flags, and also invalidating entries in the caches. A second possible solution would be to write the IO-intensive part of the program as a series of chained callbacks where each callback will be called after an IO operation occurs. Even though this avoids the performance overhead of thread context-switching, the resulting programs can be unusually difficult to read. A solution to both of these problems might be coroutines. 
+In [the first article of the series](https://ragoragino.github.io/softwareengineering/miscellaneous/2021/10/02/cpp-coroutines-1.html), we have mentioned that we are going to implement a simple TCP server based on epoll and a C++20 feature called coroutines. However, before we will embark upon such a venture, we might want to understand how an asynchronous code works with coroutines.
+
+In general, asynchronous code can be implemented in multiple ways. The first approach is to rely on the OS. This would entail calling blocking OS system calls (like `read` or `write`) and letting the OS scheduler park waiting threads. However, context-switching between threads is an expensive operation, as it involves saving a couple of CPU registers and flags, and also invalidating entries in the caches. A second possible solution would be to write the IO-intensive part of the program as a series of chained callbacks where each callback will be called after an IO operation occurs. Even though this avoids the performance overhead of thread context-switching, the resulting programs can be unusually difficult to read. A solution to both of these problems might be coroutines. 
 
 Coroutines are a generalization of functions (also called routines). For a classical function, an execution flow starts by preparing for a call, then the call itself, and after the call is finished, we return back to the caller. On 64bit x86 instruction set, the first part will consist of pushing function parameters and the address of the next instruction onto the stack. After jumping to the starting address of the called function, all the local variables that will get allocated afterward will be pushed onto the stack frame of the current function. When a called function returns, the return object (if any) is saved into a specified register, local variables are destructed and the `ret` instruction then jumps to the return address that was pushed onto the stack before by the caller.
 
@@ -93,15 +95,15 @@ struct __coroutine_func_frame {
 
 Resuming the coroutine is then just calling the suspension callback with a current suspension point index. As one can see, this approach doesn't require any CPU state manipulation and is therefore ISA-independent. However, compiler support is required. 
 
-We now know the basic theory of coroutines and what are the differences between stackful and stackless ones in terms of their performance and memory characteristics and implementations. In the next article, we will continue looking at how our possible TCP server implementation might take advantage of OS's epoll APIs to provide responsive and scalable handling of clients' requests. 
+We now know the basic theory of coroutines and what are the differences between stackful and stackless ones in terms of their performance and memory characteristics and implementations. In [the next article](https://ragoragino.github.io/softwareengineering/miscellaneous/2021/10/02/cpp-coroutines-3.html), we will continue looking at how our possible TCP server implementation might take advantage of OS's epoll APIs to provide responsive and scalable handling of clients' requests. 
 
 **Sources** \
-https://blog.panicsoftware.com/coroutines-introduction/ \
-https://dmitrykandalov.com/coroutines-as-threads \
-https://lewissbaker.github.io/2017/09/25/coroutine-theory \
-http://www.vishalchovatiya.com/cpp20-coroutine-under-the-hood/ \
-https://gcc.gnu.org/legacy-ml/gcc-cvs/2020-01/msg01576.html \
-https://llvm.org/docs/Coroutines.html \
-https://luncliff.github.io/posts/Exploring-MSVC-Coroutine.html \
-https://www.italiancpp.org/2016/11/02/coroutines-internals/ \
-https://golang.org/src/runtime/proc.go
+[https://blog.panicsoftware.com/coroutines-introduction/](https://blog.panicsoftware.com/coroutines-introduction/) \
+[https://dmitrykandalov.com/coroutines-as-threads](https://dmitrykandalov.com/coroutines-as-threads) \
+[https://lewissbaker.github.io/2017/09/25/coroutine-theory](https://lewissbaker.github.io/2017/09/25/coroutine-theory) \
+[http://www.vishalchovatiya.com/cpp20-coroutine-under-the-hood](http://www.vishalchovatiya.com/cpp20-coroutine-under-the-hood/) \
+[https://gcc.gnu.org/legacy-ml/gcc-cvs/2020-01/msg01576.html](https://gcc.gnu.org/legacy-ml/gcc-cvs/2020-01/msg01576.html) \
+[https://llvm.org/docs/Coroutines.html](https://llvm.org/docs/Coroutines.html) \
+[https://luncliff.github.io/posts/Exploring-MSVC-Coroutine.html](https://luncliff.github.io/posts/Exploring-MSVC-Coroutine.html) \
+[https://www.italiancpp.org/2016/11/02/coroutines-internals/](https://www.italiancpp.org/2016/11/02/coroutines-internals/) \
+[https://golang.org/src/runtime/proc.go](https://golang.org/src/runtime/proc.go)
