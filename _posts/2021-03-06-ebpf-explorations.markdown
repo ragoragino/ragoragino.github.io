@@ -1,10 +1,10 @@
 ---
 layout: post
-title:  "eBPF explorations"
+title:  "eBPF Explorations"
 date:   2021-03-06 11:44:00 +0100
 categories: SoftwareEngineering Miscellaneous
 ---
-During the last few days, I have been digging into the extended Barkeley Packet Filters (eBPFs). I found out about this technology when I was learning about the internal machinery of tcpdump.[^tcpdump] tcpdump works by attaching a filter during the creation of the socket, which causes all network packets to be also routed to this filter. Kernel requires these filters to be passed in the form of a BPF bytecode, which is a specific bytecode that can execute only a restricted set of operations. The reason kernel allows only a pre-specified instruction set is to remove potential security vectors associated with running userspace programs inside the kernel. The bytecode is after verification either executed by the BPF interpreter running in the kernel or JIT-compiled to the native code. The filter is always called when a new packet arrives and passes interesting packets to the userspace via a file descriptor. 
+During the last few days, I have been digging into the extended Berkeley Packet Filters (eBPFs). I found out about this technology when I was learning about the internal machinery of tcpdump.[^tcpdump] tcpdump works by attaching a filter during the creation of the socket, which causes all network packets to be also routed to this filter. Kernel requires these filters to be passed in the form of a BPF bytecode, which is a specific bytecode that can execute only a restricted set of operations. The reason kernel allows only a pre-specified instruction set is to remove potential security vectors associated with running userspace programs inside the kernel. The bytecode is after verification either executed by the BPF interpreter running in the kernel or JIT-compiled to the native code. The filter is always called when a new packet arrives and passes interesting packets to the userspace via a file descriptor. 
 
 Kernel developers spotted a huge potential that this type of kernelspace - userspace communication could provide to the larger community and hence extended BPF was born. eBPF is not only a packet filter but provides very generic hardware, kernel, and userspace tracing and monitoring functionalities. One can attach a BPF program to almost all kernel functions (that are non-inlined), user functions, hardware counters, and a lot more. It is a pretty powerful beast and there has been a lot of traction behind it lately. A major architecture difference between classical and extended BPF is that the extended version's bytecode is 64bit and has a larger instruction set. Additional improvements in the interaction with the kernel include a decent amount of data structures that are shared between kernel and userspace.
 
@@ -35,7 +35,7 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt,
 }
 ```
 
-As we can see, there are three main components - invocations of dev_net, ip_rcv_core, and NF_HOOK respectively. dev_net is not that interesting for us as it just returns a struct characterizing network namespace from a network device instance. However, the last two parts are more relevant to our investigation. ip_rcv_core updates the socket buffer (that holds the packet information) and in case of successful processing, the updated socket buffer is passed to the netfilter hook (specifically NFHOOK's NF_INET_PRE_ROUTING chain in our case). As the netfilter hook needs to be able to make decisions based on IP headers, I thought that it would be best to trace the return value of ip_rcv_core. That way, we will get access to the fully updated socket buffer and will be able to obtain relevant IP header information. The reason why I haven't chosen to just hook a kprobe for ip_rcv is exactly that the socket buffer will undergo some updates in the ip_rcv_core, so I didn't feel like the socket buffer is fully processed at the entry to the ip_rcv. Tracing just ip_rcv with kretprobe is also problematic because ip_rcv returns an int and not a socket buffer, so we would need to save a pointer to the socket buffer in a BPF hashmap during an ip_rcv kprobe and fetch that pointer afterward in the kretprobe (based on the combination of process and thread ids). However, this approach is problematic as ip_rcv_core might create a new instance of socket buffer, so in kretprobe we could end up fetching an old socket buffer! Therefore, I decided to stick with tracing the return value of ip_rcv_core function. However, because I am not a kernel developer, there might be flaws in my logic, so if anyone has a correction there I would be glad to acommodate it.
+As we can see, there are three main components - invocations of dev_net, ip_rcv_core, and NF_HOOK respectively. dev_net is not that interesting for us as it just returns a struct characterizing network namespace from a network device instance. However, the last two parts are more relevant to our investigation. ip_rcv_core's main job is to verify the validity of the packet (by for example checking checksum of the IP header) and in case of successful processing, the updated socket buffer is passed to the netfilter hook (specifically NFHOOK's NF_INET_PRE_ROUTING chain in our case). As the netfilter hook needs to be able to make decisions based on IP headers, I thought that it would be best to trace the return value of ip_rcv_core. That way, we will get access to the fully updated socket buffer and will be able to obtain relevant IP header information. The reason why I haven't chosen to just hook a kprobe for ip_rcv is exactly that the socket buffer will undergo some updates in the ip_rcv_core, so I didn't feel like the socket buffer is fully processed at the entry to the ip_rcv. Tracing just ip_rcv with kretprobe is also problematic because ip_rcv returns an int and not a socket buffer, so we would need to save a pointer to the socket buffer in a BPF hashmap during an ip_rcv kprobe and fetch that pointer afterward in the kretprobe (based on the combination of process and thread ids). However, this approach is problematic as ip_rcv_core might create a new instance of socket buffer, so in kretprobe we could end up fetching an old socket buffer! Therefore, I decided to stick with tracing the return value of ip_rcv_core function. However, because I am not a kernel developer, there might be flaws in my logic, so if anyone has a correction there I would be glad to acommodate it.
 
 So, let's see how a simple kernel trace might look like:
 
@@ -59,10 +59,10 @@ static inline struct iphdr *skb_to_iphdr(const struct sk_buff *skb)
 }
 
 int ip_rcv_core_exit(struct pt_regs *ctx) {
-	const struct sk_buff *skb = (struct sk_buff *)PT_REGS_RC(ctx);
-	if (skb == 0) {
-		return 0;	// ip_rcv_core failed
-	}
+    const struct sk_buff *skb = (struct sk_buff *)PT_REGS_RC(ctx);
+    if (skb == 0) {
+        return 0;	// ip_rcv_core failed
+    }
 
     const struct iphdr *iph = skb_to_iphdr(skb);
 
@@ -75,7 +75,7 @@ int ip_rcv_core_exit(struct pt_regs *ctx) {
         events.perf_submit(ctx, &data, sizeof(data));
     }  
 
-	return 0;
+    return 0;
 }
 ```
 
@@ -125,6 +125,7 @@ Some additional sources about the topic:
 * <https://www.privateinternetaccess.com/blog/linux-networking-stack-from-the-ground-up-part-1/> (a brutally detailed journey of a packet through the Linux networking stack)
 * <https://epickrram.blogspot.com/2016/05/navigating-linux-kernel-network-stack_18.html> (a more brain-friendly journey of a packet through the Linux networking stack)
 * <https://mcorbin.fr/pages/xdp-introduction/> and <https://duo.com/labs/tech-notes/writing-an-xdp-network-filter-with-ebpf> (some networking filtering examples using express data path, XDP)
+* https://sysdig.com/blog/the-art-of-writing-ebpf-programs-a-primer/ (a good intro to low-level details of writing raw BPF programs)
 
 Foonotes:
 

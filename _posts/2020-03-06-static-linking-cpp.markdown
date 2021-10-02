@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Static Linking of C++ programs"
+title:  "Static Linking of C++ Programs"
 date:   2021-03-07 13:35:00 +0100
 categories: SoftwareEngineering Miscellaneous
 ---

@@ -26,7 +26,7 @@ What about using a builder pattern here - we have a lot of configuration options
 
 Certificate class will be read-only and will be the result of the certificate signing. It can store all its attributes directly or it can lazily fetch its attributes from the underlying cryptographic implementation by passing the generated certificate bytes for the purposes of memory and performance efficiency. To operate the Certificate class we will need another class that we can call CertificateBuilder and that will be used to set up options for the certificate. When the clients will need to fetch the final certificate, they will call a method of CertificateBuilder that will return the signed certificate. Due to the fact that we might want to support multiple signing backends (it might be because of performance reasons, or due to some platform-specific requirements), we might create a Certificate interface (or ABC in Python's lingo) that will be implemented by different backends. So a UML diagram from an aspiring young artist might look like this:
 
-![UML diagram](/assets/images/designpatternsinthewild/builder/uml.png)
+![UML diagram](/assets/images/designpatternsinthewild/builder/diagram.png)
 
 As you might have guessed, I have described before more or less an implementation that the authors of the Python library have chosen. Let's see how some of the methods for CertificateBuilder are defined:
 

@@ -4,16 +4,16 @@ import "C"
 
 import (
 	"bytes"
-	"compress/zlib" 
-	"io"
+	"compress/zlib"
 	"fmt"
+	"io"
 )
 
-func main(){
-	inputString := "You talkin' to me? You talkin' to me? Well I don't see anyone else here..." 
+func main() {
+	inputString := "You talkin' to me? You talkin' to me? Well I don't see anyone else here..."
 
 	compressedBytes := DoCompress([]byte(inputString))
-	
+
 	compressedBuffer := bytes.NewBuffer(compressedBytes)
 	decompressedBuffer := bytes.Buffer{}
 	r, err := zlib.NewReader(compressedBuffer)
@@ -29,5 +29,5 @@ func main(){
 
 	fmt.Printf("Huraay, the compressed and decompressed strings are identical!\n")
 
-	return;
+	return
 }
