@@ -29,7 +29,7 @@ func NewGetRequest(ctx context.Context, path string) typhon.Request {
 
 This should fix the issue. However, I wanted to make sure before deploying the fix that it really does what it is supposed to so. So I embarked on writing a simple test - it consisted of creating an HTTP2 server that would send an HTTP2 `GOAWAY` frame on the first connection, and then would wait for the second connection. The second connection would be handled properly and a response would be sent. 
 
-We start by writing the HTTP2 server with proper TLS configuration:
+We start by writing an HTTP2 server with proper TLS configuration:
 ```
 func startHTTP2Server(t *testing.T, certPEM []byte, certPrivKeyPEM []byte, responseBody []byte) (string, func(), error) {
 	defaultCloser := func() {}
@@ -180,6 +180,6 @@ func handleConn(conn net.Conn, responseBody []byte, sendGoAway bool) error {
 }
 ```
 
-We either ignore or just send some basic responses for most frames, except the data frame. The data frame is the frame where we receive the empty body and a flag that this stream is now half-closed. If the `sendGoAway` flag is set (i.e. on the first connection), we return `GOAWAY` and on returning form the function we also close the connection. If the flag is absent, we just write the headers frame and the data frame containing the payload (which is the second connection).
+We either ignore or just send some basic responses for most frames, except the data frame. The data frame is the frame where we receive the empty body and a flag that this stream is now half-closed. If the `sendGoAway` flag is set (i.e. on the first connection), we return `GOAWAY` and on returning from the function we also close the connection. If the flag is absent, we just write the headers frame and the data frame containing the payload (which happens as part of the second connection).
 
 The test function itself just creates a new `typhon.Request` either with or without a `GetBody` set and it verifies that the client retries on the server's `GOAWAY` frame in the former cases or simply fails in the latter case. The whole program can be found [here](https://github.com/ragoragino/goaway/blob/master/goaway_test.go).
