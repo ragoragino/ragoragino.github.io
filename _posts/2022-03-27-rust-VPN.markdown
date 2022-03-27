@@ -1,0 +1,67 @@
+---
+layout: post
+title:  "Weapon - a simple VPN prototype in Rust"
+date:   2022-03-27 13:38:00 +0100
+categories: SoftwareEngineering Miscellaneous
+---
+
+#### introduction
+
+For the past few months I have been learning Rust a little bit more, so I was thinking about a small-ish project where I could apply some Rust magic. At one point, I remembered reading about Wireguard internals and it seemed like such a cool piece of engineering. I though writing my own simple VPN would not only help me understand some complexities around VPN management, but I would be also able to familiarise myself with some parts of Rust, namely unsafe API (to call kernel's C functions) and async libraries (to handle concurrent message processing).
+
+There are basically two types of VPNs: point-to-point or client-server. Point-to-point VPNs work by enabling two networks to communicate securely by establishing a secure link between two gateways running separately in these two networks.
+
+The client-server topology is more common in enterprise environments as it is more scalable for large networks - one needs to have a central server through which clients connect to each other. Most likely, this is the topology that might be used as part of you company's VPN solution. 
+
+Wireguard falls into the former category, but some companies (e.g. Tailscale) are building control planes that allow configuring VPN network on scale with Wireguard-running nodes.
+
+#### tun devices
+
+The first question that needs to be answered when building a VPN is how to achieve transparent encapsulation of packets (we won't delve too much on Layer 2 frames and TAP devices as the solutions resemble the ones applied for Layer 3) to the destination networks. Let's imagine two networks A (192.168.0.0/24) and B (192.168.1.0/24) that are separated by a public internet. We would want any packet coming from network A with a destination IP address within 192.168.1.0/24 to be first encrypted and routed to the correct gateway.
+
+One solution is to use IPSec, which is a suite of protocols which specify how the packets travelling through the network should be encrypted and encapsulated. IPSec works on the kernel level, where received IP packets from the userspace are encrypted and (in the tunnel mode) encapsulated in another IP packet. However, the IKEv2 standard specifies several ports to be used for different parts of the protocols, which renders the protocol quite easy to detect and might not be able to pass through all networks.
+
+Another solution employed by several VPN services (like OpenVPN) is to run the encryption and encapsulation in the userspace instead of relying on the kernel. One starts with creating a virtual Linux network device called TUN (or TAP when bridging Layer 2 networks) and creates an iptables route that will specify that all packets to the target network need to go through the TUN device. Linux allows userspace processes to attach themselves to this device and receive packets form it. That way, the communication from nodes from the origin network can be transparently forwarded to a userspace process which then can perform encryption and any other security operations (like packet filtering, auditing, etc.) before sending the encapsulated packet (most often in a UDP datagram) to the other peer. This other peer is listening on a public endpoint and after receiving the datagram it will decrypt it and send it to the destination node (that most often is accessible on the same LAN). 
+
+#### cryptography
+
+For peer to peer encryption, one needs to choose one of the authenticated encryption algorithms - I have picked ChaCha20Poly1305 mainly because it is also [recommended by Wireguard](https://www.wireguard.com/papers/wireguard.pdf). That means the two parties will share a secret key (or multiple of them) to encrypt and decrypt messages. 
+
+However, in order for this scheme to be truly robust, one would need to also use a control channel between peers which may help with key rotation, nonce establishment, and other security aspects. I didn't implement this part though as I thought it would be a little bit of a stretch from my primary goal.
+
+One additional point I want to stress is that by adding a nonce and an authentication tag to the packet during encryption, we decrease the effective length of the packet that can be send across the network without IP fragmentation. Meaning, for most networks the maximum TCP segment (so called Maximum Segment Size, MSS) or UDP datagram length that can be sent without IP fragmentation kicking in is 1500 bytes. However, by adding some additional bytes to the packet (e.g. 16 for nonce and 12 for an authentication tag), we effectively decrease the MSS to 1472. Therefore, in order to avoid costly IP fragmentation, one needs to also lower accordingly MTU on the TUN interface. This is also easily done by calling ioctl with [SIOCSIFMTU flag](https://man7.org/linux/man-pages/man7/netdevice.7.html).
+
+#### network setup
+
+As I wanted to test whether the VPN works, I though about the simplest setup I could do. I needed to have two subnets that would be separated by the some underlay network. As I had some old computer at home, I thought I could allow communication between two Docker container networks. As these networks are private to the node, no outside client can access them by default. However, by running the written VPN client on both nodes, the traffic from one Docker subnet could be forwarded to the other Docker subnet. Even though the underlying network is LAN, it serves the same purpose in this exercise as any WAN network. The only thing I needed to do was to change the default Docket subnet on one host so the network addresses would be different on the two nodes. 
+
+I setup one Docker network subnet on 172.17.0.0/16 (which is the default one), and the other one on 172.18.0.0/16. Defining a specific subnet to be used by the Docker daemon can be done by adding `default-address-pools` key to /etc/docker/daemon.json:
+
+```
+{
+  "default-address-pools":
+  [
+    {"base":"172.18.0.0/16","size":24}
+  ]
+}
+```
+
+My end goal would be to allow pinging a container on one host from a container on a second host. You can basically have the same setup (of course without the VPN tunnel) with Docker's [default overlay network option](https://docs.docker.com/network/network-tutorial-overlay/). 
+
+After changing Docker subnets, I have configured my TUN devices - on the first node, the subnet of the tunnel was 172.16.0.0/16 and on the second one it was 172.19.0.0/16. So,on the first node the whole subnet was 172.16.0.0/15, while on the second node it was 172.18.0.0/15. 
+
+In addition to defining our Docker and TUN subnets, we need to also configure routing rules. Routing rules need to specify that all traffic that is destined for the target subnet should be sent via TUN device. Setting up of a TUN device, their configuration, and adding these routing rules can all be done either on a command line or calling kernel's C API. I picked the latter option and one can see ioctl calls I use [here](https://github.com/ragoragino/weapon/blob/master/src/platform/linux/device.rs#L13).
+
+One last piece of configuration that is needed for this setup to work is to allow network traffic from [TUN device to docker interface](https://docs.docker.com/network/iptables/). This can be done by setting a new iptables rule similar to this one:
+
+```
+iptables -I DOCKER-USER -i tun0 -o docker0 -j ACCEPT
+```
+
+#### architecture
+
+So, to summarise, my simple VPN is composed of a network device part, where I configure the TUN device, and setup routing rules. Another part uses async Rust to listen to any received packets from outside network or from the TUN device and passes them to the other end (TUN device or outside network respectively). In between these two end sockets, I use Rust's channels to send the payloads to an intermediary layer that does the encryption/decryption and some auditing. 
+
+So when one sets up a network as I have described before, one should be able to see that we can ping container on one node from a container on another node. So in our case, sending ICMP requests to 172.18.0.2 from container with an address 172.17.0.2 should produce valid ICMP responses.
+
+I didn't continue investigating TAP devices for now, but I might pick it up some time later. Though I guess it should work out of the box. Also, as I have mentioned before, the encryption part is quite basic, but it serves its purpose. If you want to try it out, go ahead and check out [the Github repo containing the source](https://github.com/ragoragino/weapon).
