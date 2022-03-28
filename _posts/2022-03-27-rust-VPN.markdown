@@ -13,7 +13,7 @@ There are basically two types of VPNs: point-to-point or client-server. Point-to
 
 The client-server topology is more common in enterprise environments as it is more scalable for large networks - one needs to have a central server through which clients connect to each other. Most likely, this is the topology that might be used as part of you company's VPN solution. 
 
-Wireguard falls into the former category, but some companies (e.g. Tailscale) are building control planes that allow configuring VPN network on scale with Wireguard-running nodes.
+Wireguard falls into the former category, but some companies (e.g. Tailscale) are building control planes that allow configuring VPN networks at scale with Wireguard-running nodes.
 
 #### tun devices
 
@@ -29,11 +29,11 @@ For peer to peer encryption, one needs to choose one of the authenticated encryp
 
 However, in order for this scheme to be truly robust, one would need to also use a control channel between peers which may help with key rotation, nonce establishment, and other security aspects. I didn't implement this part though as I thought it would be a little bit of a stretch from my primary goal.
 
-One additional point I want to stress is that by adding a nonce and an authentication tag to the packet during encryption, we decrease the effective length of the packet that can be send across the network without IP fragmentation. Meaning, for most networks the maximum TCP segment (so called Maximum Segment Size, MSS) or UDP datagram length that can be sent without IP fragmentation kicking in is 1500 bytes. However, by adding some additional bytes to the packet (e.g. 16 for nonce and 12 for an authentication tag), we effectively decrease the MSS to 1472. Therefore, in order to avoid costly IP fragmentation, one needs to also lower accordingly MTU on the TUN interface. This is also easily done by calling ioctl with [SIOCSIFMTU flag](https://man7.org/linux/man-pages/man7/netdevice.7.html).
+One additional point I want to stress is that by adding a nonce and an authentication tag to the packet during encryption, we decrease the effective length of the packet that can be send across the network without IP fragmentation. Meaning, for most networks the maximum TCP segment (so called Maximum Segment Size, MSS) or UDP datagram length that can be sent without IP fragmentation kicking in is 1500 bytes. However, by adding some additional bytes to the packet (e.g. 16 for nonce and 12 for an authentication tag), we effectively decrease the MSS. Therefore, in order to avoid costly IP fragmentation, one needs to also lower accordingly MTU on the TUN interface. This is also easily done by calling ioctl with [SIOCSIFMTU flag](https://man7.org/linux/man-pages/man7/netdevice.7.html).
 
 #### network setup
 
-As I wanted to test whether the VPN works, I though about the simplest setup I could do. I needed to have two subnets that would be separated by the some underlay network. As I had some old computer at home, I thought I could allow communication between two Docker container networks. As these networks are private to the node, no outside client can access them by default. However, by running the written VPN client on both nodes, the traffic from one Docker subnet could be forwarded to the other Docker subnet. Even though the underlying network is LAN, it serves the same purpose in this exercise as any WAN network. The only thing I needed to do was to change the default Docket subnet on one host so the network addresses would be different on the two nodes. 
+As I wanted to test whether the VPN works, I though about the simplest setup I could do. I needed to have two subnets that would be separated by the some underlay network. As I had some old computer at home, I thought I could allow communication between two Docker container networks. As these networks are private to the node, no outside client can access them by default. However, by running the written VPN process on both nodes, the traffic from one Docker subnet could be forwarded to the other Docker subnet. Even though the underlying network is LAN, it serves the same purpose in this exercise as any WAN network. The only thing I needed to do was to change the default Docket subnet on one host so the network addresses would be different on the two nodes. 
 
 I setup one Docker network subnet on 172.17.0.0/16 (which is the default one), and the other one on 172.18.0.0/16. Defining a specific subnet to be used by the Docker daemon can be done by adding `default-address-pools` key to /etc/docker/daemon.json:
 
@@ -41,7 +41,7 @@ I setup one Docker network subnet on 172.17.0.0/16 (which is the default one), a
 {
   "default-address-pools":
   [
-    {"base":"172.18.0.0/16","size":24}
+    {"base":"172.18.0.0/16","size": 16}
   ]
 }
 ```
@@ -62,6 +62,6 @@ iptables -I DOCKER-USER -i tun0 -o docker0 -j ACCEPT
 
 So, to summarise, my simple VPN is composed of a network device part, where I configure the TUN device, and setup routing rules. Another part uses async Rust to listen to any received packets from outside network or from the TUN device and passes them to the other end (TUN device or outside network respectively). In between these two end sockets, I use Rust's channels to send the payloads to an intermediary layer that does the encryption/decryption and some auditing. 
 
-So when one sets up a network as I have described before, one should be able to see that we can ping container on one node from a container on another node. So in our case, sending ICMP requests to 172.18.0.2 from container with an address 172.17.0.2 should produce valid ICMP responses.
+So when one sets up a network as I have described before, one should be able to see that we can ping container on one node from a container on another node. So in our case, sending ICMP requests to a container in one subnet (e.g. 172.18.0.2) from container with in another subnet (e.g. running on 172.17.0.2) should produce valid ICMP responses.
 
 I didn't continue investigating TAP devices for now, but I might pick it up some time later. Though I guess it should work out of the box. Also, as I have mentioned before, the encryption part is quite basic, but it serves its purpose. If you want to try it out, go ahead and check out [the Github repo containing the source](https://github.com/ragoragino/weapon).
