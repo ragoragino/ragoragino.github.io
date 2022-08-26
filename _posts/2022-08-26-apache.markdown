@@ -1,0 +1,91 @@
+---
+layout: post
+title:  "An overview of the Apache® ecosystem projects"
+date:   2022-08-26 10:00:00 +0100
+categories: SoftwareEngineering Miscellaneous
+---
+
+## Intro
+
+This is a work in progress, where I try to succintly summarise projects within the Apache ecosystem. I might include some other projects that are not part of the ecosystem if they focus on big data platforms and/or big data processing.
+
+Apache ecosystem is a huge beast, just take a look at the list of [the projects](https://projects.apache.org/projects.html?number). I felt like I was slowly getting lost in this jungle and that's why I started writing a short summary about the most important ones. It's not intended as an exhaustive list and it's definitely not a full-fledged introduction or tutorial to any of the projects. My aim is to give more of a quick introduction and possibly enumeration of possible use-cases, pros, and cons, and comparison with other competing projects. Disclaimer: I have a hands-on experience with a couple of the projects mentioned in the list and for the rest any opinions shared will be mostly based on other sources.
+
+## Apache projects
+
+**Hadoop**\
+Is an ecosystem of components that allows parallel processing of tasks across distributed clusters. The core component of Hadoop is HDFS that provides the distributed file storage.
+
+**HDFS**\
+Hadoop Distributed File System is a distributed file system. It consists of a NameNode that stores the filesystem metadata and manages access to different file blocks, and DataNodes that store data themselves and stream them to clients. 
+
+**Arrow**\
+Arrow is a collection of tools that aims to provide efficient *memory* data representation and data transfer for big data. The critical component is an in-memory columnar representation of data that is highly optimized for modern CPUs (SIMD, cache locality). Because the data representation is well formalised, it can be either used across different process on a single machine (via shared memory) or efficiently transfered across nodes (e.g. Flight library that is built on top of Arrow and gRPC). Efficient inter-node communication means that data do not undergo any de/serialization, but are sent and received from the wire as they are represented in memory.
+
+[Apache Arrow: High-Performance Columnar Data Framework (Wes McKinney)](https://www.youtube.com/watch?v=YhF8YR0OEFk)
+
+**Parquet**\
+Parquet is a highly optimized columnar *disk* representation of data that is aimed at analytical workloads.
+
+**Avro**\
+Avro is a row *disk* representation of data that is primarily inteded for dynamic schemas. Schemas are defined in JSON, and the data themselves have either JSON or binary encoding. Because data files (or client-server communication) always contain the schema of data, no pre-generated schema is needed when reading (or sending) data.
+
+In Avro, receiver (e.g. Kafka consumer) must always know the schema that was used to serialize the message. Systems using Avro usually employ a schema registry where all versions of a schema are stored centrally. Messages must then be prefixed with the identifier of the schema used by the producer to allow the consumer to decode the message. In contrast to Protobuf, this introduces slightly more complexity as we need to manage a central schema registry. However, the advantages of Avro lie in self-describing data files (each file contains the schema) and rich metadata tagging (it's easy to add arbitrary metadata to the schema definition).  
+
+[Schema evolution in Avro, Protocol Buffers and Thrift](https://martin.kleppmann.com/2012/12/05/schema-evolution-in-avro-protocol-buffers-thrift.html)
+
+
+**Beam**\
+Beam is a unified framework for processing stream and batch jobs. It comes with three different SDKs (Java, Python and Go) and several compatible data processing back-ends (e.g. local runners, Apache Spark, Google Cloud Dataflow).
+
+[Apache beam at Shine — part I](https://www.shine.fr/blog/apache-beam-at-shine-part-i/)
+
+**Cassandra**\
+Cassandra is a NoSQL key-value (though uses wide column storage under the hood) store intended primarily for write-heavy workloads. It is partitioned and highly scalable. Supports multiple consistency levels (from eventual to strong) and therefore allows for different availability levels (based on quorum systems). It doesn't support foreign keys or joins out-of-the box (they need to be implemented by the application, which is definitely something to take into account when considering using Cassandra). While Cassandra supports atomicity and isolation at the row-level, it trades transactional isolation and atomicity for high availability and fast write performance. 
+
+**Giraph**\
+Giraph is a graph processing engine that uses HDFS as a backing data storage and MapReduce to execute graph algorithms. The primary use case consist of loading data (in a specific format) from external storage into it, running the graph algorithms and retrieving the results. It is written in Java nad its main API is Java (although seems to have bindings in other languages). 
+
+[Scaling Apache Giraph to a trillion edges](https://engineering.fb.com/2013/08/14/core-data/scaling-apache-giraph-to-a-trillion-edges/)
+
+**HBase**\
+HBase is a wide-column store built as an open-source implementation of Google's BigTable. 
+
+**Hive**\
+Hive adds SQL-like (HiveQL) support for Hadoop. I.e. instead of writing a MapReduce jobs to execute certain task, one can write SQL-like query. This query will get transpiled to MapReduce jobs which will then get executed.
+
+**Gremlin**\
+Gremlin is a graph-traversal language and traversal virtual machine. It accounts for single or multi-machine traversals of graphs.
+
+[The Benefits of the Gremlin Graph Traversal Machine](https://www.datastax.com/blog/benefits-gremlin-graph-traversal-machine)
+
+**Phoenix**\
+Phoenix is a massively parallel relational database that is backed by HBase. It compiles SQL queries into HBase API commands. In contrast to Hive, no MapReduce execution jobs are run. It is more suited to OLTP large workloads instead of analytical ones (as Hive is). From a transactional point of view, it primarily provide row-level atomicity (though some support for larger transactions seems to be coming).
+
+[The Design of Strongly Consistent Global Secondary Indexes in Apache Phoenix — Part 1](https://engineering.salesforce.com/the-design-of-strongly-consistent-global-secondary-indexes-in-apache-phoenix-part-1-90b90bda4210/)
+
+**Storm**\
+Kafka Streams but on Hadoop.
+
+**Submarine**\
+Submarine is an end-to-end framework for executing machine-learning pipelines. As the container orchestrator it currently suports either Kubernetes or  YARN.
+
+[Apache Submarine: A Unified Machine Learning Platform Made Simple](https://euromlsys.eu/pdf/euromlsys22-final22.pdf)
+
+**Airflow**\
+Airflow is a data workflow management tool. One defines a DAG of tasks (defined through operators, like e.g. bash or JDBC operators) that can then be executed by Airflow. Airflow allows for one-off or periodic execution of tasks. There are different executors that execute the tasks, e.g. local or Kubernetes. Airflow is currently a go-to tool for orchestrating data transformation jobs.
+
+**Flink**\
+Flink is a stream processing framework (very similar to Kafka Streams) that integrates with different sources and sinks (e.g. Kafka).
+
+**ZooKeeper**\
+ZooKeeper is a distributed metadata store that provides other distributed systems with consistent metadata storage. It's lightweight nature allows it to be used as a coordination service for other distributed systems. It is very similar to a more recent project called etcd (distributed key-value store used as a central cluster storage in K8S) which I would personally opt for when considering using a coordination service.
+
+[etcd versus other key-value stores](https://etcd.io/docs/v3.5/learning/why/)\
+[ZooKeeper Internals](https://zookeeper.apache.org/doc/r3.1.2/zookeeperInternals.html)
+
+
+## A list of projects not belonging to Apache (but with similar focus) 
+
+**Debezium**\
+Debezium's main focus is providing CDC (change-data-capture) functionality to databases that don't support it natively. For example, they support MySQL, PostgreSQL, and MongoDB as their sources. They can stream the data changes to either Apache Kafka (via Debezium running as Kafka connector) or to other sinks (e.g. Google PubSub, Amazon Kinesis).
