@@ -7,7 +7,7 @@ categories: SoftwareEngineering Miscellaneous
 
 ## Intro
 
-Recently, I needed to convert Hadoop RDD containing Protobuf-serialized objects (of encoding *length of the object | object*) to an RDD of Parquet files to enable easier analytical queryability of the data. The Protobuf objects are deeply nested, but there is a natural connection between Protobuf and Parquet, as Parquet is able to handle all the types that are defined in Protobuf (for some intro to Dremel, the Parquet storage format, see [here](http://www.goldsborough.me/distributed-systems/2019/05/18/21-09-00-a_look_at_dremel/)). Therefore, I thought that handling this mapping should be a straightforward task in Pyspark.
+Recently, I needed to convert Hadoop RDD containing Protobuf-serialized objects to an RDD of Parquet files to enable easier analytical queryability of the data. The Protobuf objects are deeply nested, but there is a natural connection between Protobuf and Parquet, as Parquet is able to handle all the types that are defined in Protobuf (for some intro to Dremel, the Parquet storage format, see [here](http://www.goldsborough.me/distributed-systems/2019/05/18/21-09-00-a_look_at_dremel/)). Therefore, I thought that handling this mapping should be a straightforward task in Pyspark.
 
 However, I was surprised to find out that there is no easy way to do that. I have found that in Java folks can use [ProtoParquetWriter](https://github.com/apache/parquet-mr/blob/master/parquet-protobuf/src/main/java/org/apache/parquet/proto/ProtoParquetWriter.java) to handle writing of protobuf objects to Parquet, but nothing similar exists in the Python ecosystem.
 
