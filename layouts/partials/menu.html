@@ -1,0 +1,13 @@
+{{ $current := . }}
+{{ range .Site.Menus.main }}
+  {{ if eq $current.URL .URL }}
+    <li class="active">{{ .Name }}</li>
+  {{ else }}
+    <li><a href="{{ .URL }}">{{ .Name }}</a>
+      {{ $children := .Children }}
+      {{ with $children }}
+        <ul>{{ partial "menu.html" (slice .) }}</ul>
+      {{ end }}
+    </li>
+  {{ end }}
+{{ end }}

@@ -1,7 +1,8 @@
 ---
-layout: page
-title: About
-permalink: /about/
+layout: post
+title:  "Who am I?"
+date:   2023-04-27 13:35:00 +0100
+categories: About
 ---
 
 If you got here, you got probably lost on your adventures on the internet or you are one of my friends whom I forced to check out my blog!
