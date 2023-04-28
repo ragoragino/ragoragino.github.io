@@ -1,5 +1,5 @@
 baseURL = 'http://ragoragino.dev'
 languageCode = 'en-us'
 title = 'In Mood for Programming'
-theme = 'ananke'
+theme = 'hugo-theme-relearn'
 sectionPagesMenu = "main"
