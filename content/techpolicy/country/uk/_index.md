@@ -1,5 +1,5 @@
 +++
 alwaysopen = false
-description = "UK AI"
-title = "UK AI"
+description = "UK"
+title = "UK"
 +++
