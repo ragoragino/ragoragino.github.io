@@ -1,5 +1,8 @@
 baseURL = 'http://ragoragino.dev'
 languageCode = 'en-us'
-title = 'In Mood for Programming'
+title = 'In the Mood for Programming'
 theme = 'hugo-theme-relearn'
 sectionPagesMenu = "main"
+
+[params]
+  themeVariant = "relearn-bright"
