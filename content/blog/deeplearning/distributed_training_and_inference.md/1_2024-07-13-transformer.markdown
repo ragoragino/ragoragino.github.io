@@ -2,7 +2,7 @@
 layout: post
 title:  "Transformer"
 date:   2024-07-13 13:35:00 +0100
-categories: Deep Learning: Distributed Training and Inference
+categories: "Deep Learning: Distributed Training and Inference"
 ---
 
 # Introduction to the Transformer architecture
