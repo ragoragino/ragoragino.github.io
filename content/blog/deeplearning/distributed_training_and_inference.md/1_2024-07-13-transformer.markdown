@@ -5,7 +5,7 @@ date:   2024-07-13 13:35:00 +0100
 categories: "Deep Learning: Distributed Training and Inference"
 ---
 
-# Introduction to the Transformer architecture
+### Introduction
 
 In this post, I will be trying to understand the original [Transformer paper](https://arxiv.org/abs/1706.03762).
 
@@ -27,7 +27,7 @@ The attention layer in the Transformer case is basically doing a dot product bet
 
 See this snapshot from Chollet's book:
 
-![alt text](1_attention.png)
+![Attention](/assets/images/deeplearning/1_attention.png)
 
 In addition, in the Transformer case they use separate learned matrices to weight input attention vectors. This is similar to learned kernels in convolutional networks and its purpose is to enable learning of more complex features in the attention blocks of the network. To even enhance the process of learning complex semantic relationships, the authors introduce using multiple attention heads in parallel (in addition to using them in successive layers). To be honest, here I have the biggest gap as I have a hard time understanding how the transformer is able to capture such a diverse range of relationships between different grammatical structures (verbs, direct/indirect objects, etc.) in sequences that differ so much. But I guess this is the magic of generalization (and can be compared to how convolutional networks can learn to recognize objects regardless of their shape, size, or position in the input image). 
 
@@ -47,7 +47,7 @@ At this point, we should be able to understand this architectural graph from the
 
 The decoder part starts with the output embeddings (enhanced with positional information) and continues with a stack of multiple core blocks containing masked attention to the output embeddings, attention to the result of the encoder, and a feed-forward layer. The output of the decoder block is then passed into a linear layer and we obtain the next token prediction by running a softmax against its output.
 
-![alt text](1_full_architecture.png)
+![Full Architecture](/assets/images/deeplearning/1_full_architecture.png)
 
 Sources:
 - Francois Chollet: Deep Learning with Python
