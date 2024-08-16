@@ -19,7 +19,7 @@ So, from this setup, it's clear we need multiple security guarantees for an emai
 2) outbound server is a legitimate server that can handle the traffic for the domain specified in the RETURN PATH header
 3) outbound server is a legitimate server that can send emails for the domain specified in the FROM header
 4) that the traffic between inbound and outbound SMTP servers hasn't been tampered with and no other actor (e.g. Mallary) can read the traffic (these are more or less classic TLS concerns)
-5) and a final special conern, that the traffic between the original outbound SMTP server and the receiving SMTP server hasn't been tampered in case of SMTP relays/forwarding servers that can lie in between.
+5) and a final special concern, that the traffic between the original outbound SMTP server and the receiving SMTP server hasn't been tampered in case of SMTP relays/forwarding servers that can lie in between.
 
 Phuu, that's a lot of security that we need to put into work here!
 
@@ -45,7 +45,7 @@ In this example, we are allowing for the IP address of the domain used in the RE
 
 The solution to the other problem 5) is a separate framework called DKIM, an abbreviation of DomainKeys Identified Mail. We again use the implicit trust in DNS together with a public-key cryptography. Every SMTP system that wants to protect its outbound emails against tampering, can publish a TXT record against a specified subdomain (composed of the so-called selector and the core `_domainkey.[domain]`) containing a public key. Whenever that server transmits an email to another SMTP server it can sign the email with a private key corresponding to the public key published in that TXT record. In addition, the sending SMTP server adds a special DKIM header containing the selector string and a domain to verify against. Receiving SMTP server can then verify the signature, which effectively guarantees that email must have been sent by a server associated with the domain in the DKIM header.
 
-Okay, so if we have all of this SPF and SKIM setup, we know that the SMTP server in the RETURN PATH header is valid for receiving bounce and compliants for the domain under that header and that the SMTP server representing the domain in the DKIM header signed the email. However, these two headers have no relationship to the FROM header! So basically, if we would only have SPF and DKIM verification, mallory@mcorp.com could still send emails impersonating alice@acorp.com! 
+Okay, so if we have all of this SPF and SKIM setup, we know that the SMTP server in the RETURN PATH header is valid for receiving bounce and complaints for the domain under that header and that the SMTP server representing the domain in the DKIM header signed the email. However, these two headers have no relationship to the FROM header! So basically, if we would only have SPF and DKIM verification, mallory@mcorp.com could still send emails impersonating alice@acorp.com! 
 
 That's where DMARC, or Domain-based Message Authentication, Reporting and Conformance, comes into play. DMARC basically ties DKIM and SPF protocols with the FROM header and allows specifying policies in case any of these protocol fails. The DMARC record is another DNS record that is added to the domain and that specifies what kind of DKIM and SPF alignment we expect and what to do if the DMARC checks fails for an email.
 
@@ -61,7 +61,7 @@ With all of this setup now, we can be sure the domain of the outbound email addr
 
 So, to recap, let's write down the solutions to each of the security problems:
 
-1) inbound server is a legimitate server with permission to handle the traffic for bcorp.com: **DNS MX**
+1) inbound server is a legitimate server with permission to handle the traffic for bcorp.com: **DNS MX**
 2) outbound server is a legitimate server that can handle the traffic for the domain specified in the RETURN PATH header: **SPF**
 3) outbound server is a legitimate server that can send emails for the domain specified in the FROM header: **DMARC**
 4) the traffic between inbound and outbound SMTP servers hasn't been tampered with and no other actor (e.g. Mallary) can read the traffic (these are more or less classic TLS concerns): **TLS**
