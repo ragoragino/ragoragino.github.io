@@ -1,5 +1,5 @@
 +++
 alwaysopen = false
-description = "Country-specific policies"
-title = "Country-specific policies"
+description = "Region-specific policies"
+title = "Region-specific policies"
 +++
