@@ -12,7 +12,7 @@ In addition to elaborations of my (mostly engineering) ideas, I also try to prod
 Even though I am a software engineer, I have formal education in history and quantitative economics. However, along the way, I somehow got swayed by computers and software. Nonetheless, I am still very interested in history (being a huge fan of the Annales school of historical analysis), and also in economics (mainly macro-related stuff). My software engineering expertise is in the realms of security, networking, big data and distributed systems.
 
 {{< rawhtml >}}
-  <a href="https://www.linkedin.com/in/rastislav-kise%C4%BE-3a2151112"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e9/Linkedin_icon.svg" alt="icon | LinkedIn" width="21px"/></a>
+  <a href="https://www.linkedin.com/in/rastislav-kisel-3a2151112"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e9/Linkedin_icon.svg" alt="icon | LinkedIn" width="21px"/></a>
 
   <a href="https://github.com/ragoragino"><img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="icon | LinkedIn" width="21px"/></a>
 
