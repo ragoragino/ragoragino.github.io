@@ -1,0 +1,11 @@
+/* Place custom css here. */
+
+.blog-title {
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    font-size: 1.5rem; /* Equivalent to text-2xl in Tailwind CSS */
+    font-weight: 500; /* Equivalent to font-medium in Tailwind CSS */
+  }
