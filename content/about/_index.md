@@ -1,5 +1,5 @@
 +++
-archetype = "home"
+description = "essays"
 layout = "single"
 +++
 

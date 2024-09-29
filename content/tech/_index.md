@@ -1,7 +1,7 @@
 +++
 alwaysopen = false
-description = "Software Engineering"
-title = "Software Engineering"
+description = "tech"
+title = "tech"
 +++
 
 Here are my software engineering topics.

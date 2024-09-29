@@ -1,7 +1,7 @@
 +++
 alwaysopen = false
-description = "Miscellaneous"
-title = "Miscellaneous"
+description = "essays"
+title = "essays"
 +++
 
 Here are elaborations on some of my other ideas.
