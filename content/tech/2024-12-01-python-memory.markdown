@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Analysing Memory of Python Programs"
+title:  "Debugging Memory Issues in Production Python Services"
 date:   2024-12-01 10:00:00 +0100
 categories: SoftwareEngineering Miscellaneous
 ---
@@ -33,7 +33,7 @@ Two main approaches exist for identifying memory leaks in Python applications: a
 
 #### Guppy
 
-[Guppy](https://smira.ru/wp-content/uploads/2011/08/heapy.html) is a mature Python package that provides comprehensive Python heap snapshots. Its power lies in its ability to analyze heap structure, allowing developers to traverse entire object reference trees—for instance, tracing the complete chain from allocated strings to their containing class. This capability, however, comes at a cost: to generate its detailed heap map, Guppy must iterate through all live objects and create mappings between them, making it both slow and memory-intensive in complex environments. The tool has a steep learning curve, particularly in understanding the various object [relationships](https://zhuyifei1999.github.io/guppy3/heapy_Use.html#heapykinds.Use) and applying them effectively in analysis. Yet once mastered, Guppy enables detailed analysis through successive heap snapshots, revealing the evolution of suspicious objects and their relationships (including both referring object types and specific referring fields). For my production environment analysis, I implemented a temporary endpoint to execute Guppy queries against the running service
+[Guppy](https://smira.ru/wp-content/uploads/2011/08/heapy.html) is a mature Python package that provides comprehensive Python heap snapshots. Its power lies in its ability to analyze heap structure, allowing developers to traverse entire object reference trees—for instance, tracing the complete chain from allocated strings to their containing class. This capability, however, comes at a cost: to generate its detailed heap map, Guppy must iterate through all live objects and create mappings between them, making it both slow and memory-intensive in complex environments. The tool has a steep learning curve, particularly in understanding the various object [relationships](https://zhuyifei1999.github.io/guppy3/heapy_Use.html#heapykinds.Use) and applying them effectively in analysis. Yet once mastered, Guppy enables detailed analysis through successive heap snapshots, revealing the evolution of suspicious objects and their relationships (including both referring object types and specific referring fields). For my production environment analysis, I implemented a temporary endpoint to execute Guppy queries against the running service:
 
 ```
 class MemoryTracer:
