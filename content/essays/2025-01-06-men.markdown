@@ -5,9 +5,9 @@ date:   2025-01-06 00:00:00 +0100
 categories: Miscellaneous
 ---
 
-# Our dads
+### Our dads
 
-My dad is the prime example of an old-school man. He's stoic in accepting everything that life throws at him. There's no apparent outpouring of emotions, even in the toughest situations. He emanates physical strength and intellectual rigor (he co-designed and helped build our house), with a razor-like focus on fulfilling his role as the family's breadwinner. I have seen my dad start to well up - forbid crying, for God's sake - only once, and that was when his father couldn't come to his birthday celebration because he was too ill. Never again.
+My dad is the prime example of an old-school man. He's stoic in accepting everything that life throws at him. There's no apparent outpouring of emotions, even in the toughest situations. He emanates physical strength and intellectual rigor, with a razor-like focus on fulfilling his role as the family's breadwinner. I have seen my dad start to well up - forbid crying, for God's sake - only once, and that was when his father couldn't come to his birthday celebration because he was too ill. Never again.
 
 I have watched this man interact with his wife, lift bricks in our garden, and spend long days working throughout my entire young life. This was the behavior I unconsciously absorbed. I love my dad deeply. However, these personality traits I grew accustomed to might be considered suspicious, if not outright unhealthy, these days. Our culture is shifting toward encouraging men to become more emotionally vulnerable and less focused on physical strength, assertiveness, and career achievements. None of these would seem natural to my dad. As a result, I witnessed very few examples of such traits while growing up.
 
@@ -21,7 +21,7 @@ So I started researching whether there was any literature or scientific research
 
 As I delved deeper into existing literature and scientific research on the topic, I discovered something more troubling: not only are men failing to find role models to follow, they're failing to sustain themselves in the first place.
 
-# Fallen men
+### Fallen men
 
 There is now a plethora of evidence showing that men are failing across a range of social measures.
 
@@ -37,7 +37,7 @@ Taking all these statistics together doesn't imply that the gender gap has compl
 
 However, as we have made significant strides in female empowerment in the past few decades, another gap has started opening. And even though some of the problems do vary across races and income levels of men, the overall picture remains the same: men are falling behind.
 
-# Boys can learn, boys can work, boys can hug
+### Boys can learn, boys can work, boys can hug
 
 Once you start researching possible causes of all these issues (and disregard arguments that are too hand-wavy), a few possible explanations emerge.
 
@@ -59,6 +59,6 @@ A significant shift in male friendship dynamics allegedly occurred when homosexu
 
 While the decline in strong male friendships contributes to challenges faced by men today, it would be oversimplified to attribute all their difficulties to this single factor. Educational disparities and labor market inequalities deserve equal, if not greater, attention. Nevertheless, the erosion of close male bonds has likely had a significant negative impact on society as a whole.
 
-# Prologue
+### Prologue
 
 Unfortunately, I still haven't found that Ultimate Man™ role model. What I understand better now, though, is how many men are struggling to thrive in today's world. What's needed are maybe new role models: people who advocate for and deliver better education for young boys, people who create and provide more job opportunities for men, and people who nurture relationships with their fellow men.
