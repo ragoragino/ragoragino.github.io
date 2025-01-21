@@ -12,6 +12,7 @@ sectionPagesMenu = "main"
   twitter = 'ragoragino'               # twitter.com/YOUR_TWITTER_ID
   github = 'ragoragino'                 # github.com/YOUR_GITHUB_ID
   linkedin = 'rastislav-kisel-3a2151112/'             # linkedin.com/in/YOUR_LINKEDIN_ID
+  goodreads = 'ragoragino'
   rss = false                                # show rss icon
 
   # misc
