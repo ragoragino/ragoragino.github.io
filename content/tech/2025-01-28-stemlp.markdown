@@ -23,7 +23,7 @@ Always consider different security vectors (consult [OWASP Top Ten](https://owas
 - Ensure processes are crash-resistant to prevent DoS attacks
 - Implement timeouts for all network calls (including connections, file descriptor operations, and request processing) and ensure timeout propagation across client requests
 - Implement proper user authentication and authorization mechanisms (RBAC, ACL, etc.)
-Apply additional security principles based on specific use cases (e.g., sensitive data encryption)
+- Apply additional security principles based on specific use cases (e.g., sensitive data encryption)
 
 **Tests**
 
