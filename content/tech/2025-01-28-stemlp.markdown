@@ -1,0 +1,80 @@
+---
+layout: post
+title:  "STEMLP Principles"
+date:   2025-01-28 00:00:00 +0100
+categories: SoftwareEngineering Miscellaneous
+---
+
+Throughout my career building distributed systems, I have developed several internal mental tools that I use during development. One of these tools is a mnemonic device that guides me when building a new system or writing code. I call this mnemonic, as the title suggests, the STEMLP principle (which is hopefully easy to remember due to its similarity to STEM degrees). While I haven't encountered anything similar in the literature, it's likely that many software engineers have developed their own internal compasses for building engineering systems. In my case, STEMLP stands for six principles:
+
+1. Security
+2. Testing
+3. Errors
+4. Monitoring
+5. Logging
+6. Performance
+
+Each of these principles represents core relationships and behaviors that a reliable distributed system should have. While this isn't an exhaustive list, it has served me well as a good first approximation.
+
+**Security**
+
+Always consider different security vectors (consult [OWASP Top Ten](https://owasp.org/www-project-top-ten/) if not sure).
+- Sanitize user inputs, including input size limits and client rate limiting
+- Ensure processes are crash-resistant to prevent DoS attacks
+- Implement timeouts for all network calls (including connections, file descriptor operations, and request processing) and ensure timeout propagation across client requests
+- Implement proper user authentication and authorization mechanisms (RBAC, ACL, etc.)
+Apply additional security principles based on specific use cases (e.g., sensitive data encryption)
+
+**Tests**
+
+Always ensure your programs are properly tested, while avoiding test overload by keeping tests well-targeted and focused on non-trivial logic:
+
+- Write unit tests for core program logic
+- Implement integration tests for APIs
+- Include additional tests as appropriate (performance, regression, chaos, disaster recovery, etc.)
+
+**Errors**
+
+All programs should handle error conditions. These can arise from diverse sources - external systems (DB, cache, Kafka, server) failing, internal preconditions not being met, or systems encountering impossible states. All of these situations need to be handled (don't hesitate to add assertions throughout your code to test for them):
+
+- Ensure distributed system failures are properly handled, maintaining system consistency even after failures (using transactions for DB writes, cache<->DB operations, DB and Kafka writes, etc.) 
+- Design for idempotency to handle client failures
+- Ensure errors are propagated throughout the program and caught at appropriate points
+- Translate errors appropriately so clients understand the next steps (retry or abandon the request). Validate user input at the earliest appropriate point and signal input problems clearly to clients (e.g., using HTTP 400 error code)
+- Implement retry logic (exponential backoff with jitter) when handling retriable errors from remote API calls
+- Use circuit breakers to fail fast and prevent cascading failures
+
+**Monitoring**
+
+Monitoring should give engineers visibility into the system's inner workings and ensure all system SLO metrics are maintained:
+
+- Implement comprehensive metrics (using e.g., Prometheus and Grafana), including:
+    - System resources (CPU, memory, disk, network, GPU, etc.)
+    - Latency and throughput
+    - SLO compliance
+    - Additional internal logic metrics
+- Configure alerts based on these metrics to detect SLO breaches
+- Implement health checks in services (which can be used by load balancers for traffic routing)
+
+**Logs**
+
+Logging doesn't merely refer to standard output (or error) messages. It encompasses all necessary information a program should publish to enable engineers to trace its internal operations. This information serves debugging, performance analysis, and audit purposes:
+
+- Implement comprehensive logging with appropriate levels (debug, info, warning, error) to understand the program's core functionality
+- Maintain audit logs of core changes (when required)
+- Avoid log overload by publishing only necessary information
+- Include relevant correlation data in logs to enable request debugging (e.g., unique request ID, user ID, and other important correlation IDs), supporting tracing across multiple network hops (trace IDs, e.g., using OpenTracing)
+- Use structured log formats (e.g., JSON)
+
+**Performance**
+
+Ensure your system can scale to expected load within cost constraints. However, remember that "Premature Optimization Is the Root of All Evil" - time spent on performance optimization should be proportional to the requirements of your specific problem:
+
+- Implement caching where appropriate for faster information retrieval
+- Use batch API requests to minimize network latency
+- Utilize connection pooling when accessing external resources (e.g., PgBouncer for PostgreSQL)
+- Select technologies that match your information retrieval patterns (SQL, NoSQL, search engines, etc.)
+- Choose appropriate data structures for your use case (B+ Tree vs. GIN indexes, Redis hash maps vs. sets, PostgreSQL WAL vs. unlogged tables, etc.)
+- Implement horizontal (auto) scaling, load balancing, and other optimization techniques as needed
+
+As mentioned earlier, this is not an exhaustive list of principles for building engineering systems. Rather, it serves as a guide for software engineers and should be tailored to specific use cases. This list has served me well when building distributed systems, and I believe it contains the minimal set of principles needed when productionizing stable and reliable distributed systems. Additionally, while principles like Documentation and others should be included as part of a complete engineering approach, these belong to the general software engineering toolbox. I welcome feedback on similar mnemonics or any important aspects you think these principles might have missed!
