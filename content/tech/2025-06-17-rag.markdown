@@ -1,0 +1,65 @@
+---
+layout: post
+title:  "State of the RAG: 2025"
+date:   2025-06-17 00:00:00 +0100
+categories: SoftwareEngineering Miscellaneous
+---
+
+This article is nothing more than an overview of the current state of more-or-less established and working methodologies for building scalable and efficient RAG systems. I am not aiming to provide comprehensive coverage of all existing methods or offer insights into hot new experimental RAG techniques. Most enterprises will want to avoid the latter and focus on the former approaches. This article is therefore an attempt to summarize what a scalable production RAG pipeline could look like. As a result, I will not focus on projects that are great for building local demos or ingesting a couple of GBs of data, but rather on systems that need high ingestion and search throughput. Also, I will almost exclusively cover language-specific RAG, so this approach might not be optimal for multi-modal applications.
+
+### Pipeline
+
+An ideal RAG pipeline will consist of multiple basic components:
+
+- Ingestion Layer that loads the documents
+- Data Pre-Processing Layer that makes the data ready for chunking. This can be executed before the ingestion layer or after it.
+- Chunking Layer that splits the documents into chunks that fit within the maximum token window of the embedding model
+- Embedding Layer that takes the chunks and embeds them
+- Storage Layer that stores the embeddings and any other data (chunks themselves or some metadata)
+- Search Layer is the part of the system that interfaces with the client on the read path, i.e., when querying the data
+- Evaluation Layer is an adjacent part of the system that should ensure that expected input/output relationships are upheld
+
+All these boxes can either live in a single service for applications running at smaller data throughput scales or be dispersed across multiple services for larger systems. The classical dilemma of building this versus procuring an existing open-source or paid solution applies here too. For enterprises of a certain scale and complexity, building these systems themselves might make sense as it gives them more flexibility. In addition, procuring an existing solution is also a much riskier bet, as the field changes so rapidly that existing players or technologies might quickly become obsolete. Regardless of the procurement decision, most existing systems will follow the architecture pattern described above. So let's now work our way through each component:
+
+### Ingestion
+
+Data ingestion will be the entry gate of data into your RAG system. There are now plenty of connectors to popular data sources (Jira, Confluence, Slack, etc.), and therefore this bit is more often than not the most straightforward and API/SDK-friendly part of the entire pipeline. The requirements on your data freshness will inform the periodicity of ingestion from these datasets, and your data throughput will also impact the choice of technology used for this part.
+
+### Data pre-processing
+
+Data pre-processing can be done either after ingestion, but for applications where a specific data quality/form is required, this should be done before. We are talking here about formatting PDF/PPTX/etc. documents into objects that lend themselves much better to chunking or embedding transformations. There are plenty of existing libraries that do these kinds of transformations, though many of them require heavy usage of LLM models (OCR extraction, etc.), so scale and cost issues will need to be considered here too.
+
+### Chunking
+
+Chunking is the necessary evil of every RAG. It's the part where people spend a lot of time figuring out the gnarly details of how to chunk the documents. The old-fashioned dumb text splitting can now be replaced by more sophisticated methods of chunking with grammar or semantic awareness. When using the latter method (so-called semantic chunking), we will necessarily encounter scale issues for non-trivial input datasets, as the method very often relies on LLMs for parsing and formatting files.
+
+The problem with chunking is that we are effectively losing all the adjacent context of the document. This necessarily results in an efficiency drop in the retrieval stage. A couple of techniques have been experimented with to mitigate this problem. The crux of the solution lies in embedding document or section-level information as part of the chunk. Anthropic's so-called contextual retrieval approach prepends chunk-specific document context to chunks (see [Anthropic's study](https://www.anthropic.com/news/contextual-retrieval)), others prepend document or section-level summaries to them (see [here](https://superpowered.ai/blog/introducing-auto-context) or [here](https://github.com/D-Star-AI/dsRAG)).
+
+### Embedding
+
+After chunking, we now need to transform those text blocks into embeddings, and there are multiple parameters to consider in this process. The embedding size is strongly correlated with information density, so the longer the embedding, the more information can be stored in that vector (on average, of course). However, longer embeddings naturally mean higher storage requirements and potentially higher costs. Which embedding model to choose is an art, and there is a plethora of those now. MTEB benchmarks on Hugging Face (mostly STS and Retrieval tasks) are a relatively good predictor of embedding quality. However, many of these benchmarks are heavily biased towards English corpora, so specialized models will need to be explored for other languages. Cost is another variable, and here one chooses between the simplicity of using LLM providers' APIs (OpenAI, Gemini) or renting a GPU from a cloud provider and running embedding models there directly. The decision is heavily application-dependent, so companies need to do the math to decide on the most sensible approach.
+
+In addition to embeddings, there is a significant retrieval efficiency bump from using more classical methods of search. One can use full-text search on the chunk itself and/or different metadata associated with it (labels, tags, etc.) together with embedding similarity search when retrieving documents. The full-text search itself will use sparse embeddings under the hood, most commonly based on TF-IDF or BM25 text analysis algorithms. These techniques have been consistently shown to perform better primarily on more unique datasets, e.g., datasets about your organization's processes. The reason is that embedding models are trained on very general text datasets and therefore they might fail to capture the semantic properties of your highly specific language or domain use case. Using good old full-text search in addition to embedding search will therefore ensure we can pick up those specialized details.
+
+### Store
+
+The market of embedding stores is experiencing a similar expansion as we saw during the NoSQL boom a decade ago. Different players are selling exaggerated claims in an atmosphere of significant future uncertainty. Therefore, for most enterprises, using tools that are already well-established in the space of storage and retrieval and have been around for some time are probably the best bets. Using Elasticsearch or PostgreSQL will probably be satisfactory for the majority of use cases. The configuration of this storage layer will again depend heavily on the use case, but these decisions will require similar tradeoffs as when choosing the right database.
+
+### Search
+
+We have already mentioned that for best results, searching through embeddings together with text and any associated metadata is the way to go. There are some variations on how the search process proceeds, though. In several cases, query enhancements have been shown to produce good results. A technique called HyDE will transform a query into hypothetical answers that can be used for retrieval rather than the original query (see e.g. [here](https://docs.haystack.deepset.ai/docs/hypothetical-document-embeddings-hyde)). The idea is that enhancing the query in this way, one is able to get closer in the embedding space to the embedded documents. The quality of this approach is very use-case dependent, but might be potentially useful as an additional step, not a replacement, within the retrieval pipeline. Finally, filtering and re-ordering can provide a quality boost to your retrieval process. This is often achieved by using so-called re-ranking models (again either through self-hosted models or cloud APIs). These models take in a query and a set of documents and return similarity scores that can be used for filtering and reordering of the retrieved documents (see [here](https://www.pinecone.io/learn/series/rag/rerankers/)). 
+
+In addition to the quality of your retrieved output, the speed and throughput of the search queries will become of paramount importance when dealing with bigger datasets (TBs of data). This will need to be tuned primarily on the storage layer configuration options. For example, in the case of Elasticsearch, one might play with segment merging, index refresh interval, and parameters of the kNN search itself to boost the query speed.
+
+### Evaluations
+
+The final piece of the entire RAG will be evaluations. It seems like evaluating your RAG can be an afterthought, but I would strongly recommend viewing it as an inherent part of productionizing any retrieval architecture. Without systematic evaluation, you are not able to tell whether your system performs reasonably well, and any quality regressions resulting from tiny configuration tweaks can end up completely unnoticed. Evaluations will primarily rely on generating or finding an already existing dataset that closely resembles the particular use case of your organization. Having a consistent view of retrieval precision, recall, and other relevant metrics (NDCG, hits, LLM-judged accuracy, etc.) provides an essential view of the quality of your RAG and potential necessary improvements in case of quality gaps.
+
+There is now a plethora of datasets, either open-source or for purchase, that companies can use for RAG evaluation purposes. In addition, there are multiple frameworks that make calculating and viewing the final metrics easier, although the metric computation is probably the easiest part of the entire evaluation. Gathering relevant datasets and ensuring evaluations actually test the core configuration of your RAG pipeline will be much more time-intensive tasks.
+
+### Epilogue
+
+There are a lot of potential traps in building efficient RAG systems these days. The quality of many libraries, frameworks and products in the space isn't as great, mostly due to the pressure of extremely fast release cycles. Many published studies might lean towards specific datasets and not apply to everyone's use case. Adjacently, many of the new techniques haven't been tested for prolonged periods of time under varied circumstances. The whole space of time-proven approaches and technologies that exist in traditional software engineering (Redis, PostgreSQL, Kafka, etc.) is almost completely missing when we enter the domain of LLM ops. What I have tried is to give you an overview of approaches that are becoming more and more established, but are still very much subject to re-evaluation. Having open eyes and always experimenting with new techniques on the side is therefore often a must, and one needs to apply more ML engineering than traditional infrastructure practices here.
+
+If you are interested to read more about RAG pipelines, here are some other great sources:
+- A good presentation about some more experimental RAG techniques: https://glaforge.dev/talks/2024/10/14/advanced-rag-techniques/
