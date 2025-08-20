@@ -3,8 +3,8 @@ description = "essays"
 layout = "single"
 +++
 
-I am a software engineer based in London, currently working for a US-based email and cloud security scale-up, Abnormal Security. Before that, I was working for Monzo and ESET. My resume can be found {{< staticfile >}}here{{< /staticfile >}}.
+I am a software engineer based in London, currently working for the US-based email and cloud security scale-up, Abnormal Security. Previously, I worked at Monzo and ESET.
 
-This blog is a mix of multiple different topics. On one axis are my [general blog topics](/tech/) revolving mostly around C++, Go, distributed systems and networking. In addition, I sometimes write [essays](/essays/) completely unrelated to my work.
+This blog covers a variety of topics. I primarily write about [software engineering](/tech/), from distributed systems and networking to deep dives into concrete programming challenges in languages like C++, Go, and Python. I also explore different areas of [contemporary economies and societies](/explorations), researching and analyzing topics that spark my curiosity. Occasionally, I share [personal essays](/essays) that are completely unrelated to my professional work.
 
-Even though I am a software engineer, I have formal education in history and quantitative economics. However, along the way, I somehow got swayed by computers and software. Nonetheless, I am still very interested in history (being a huge fan of the Annales school of historical analysis), and also in economics (mainly macro-related stuff). My software engineering expertise is in the realms of security, networking, big data and distributed systems.
+Although I am a software engineer, my formal education is in history and quantitative economics. Along the way, however, I became captivated by computers and software. I remain deeply interested in history—particularly as a fan of the Annales school of historical analysis—and in economics, with a focus on macroeconomics. My software engineering expertise lies in security, networking, big data, and distributed systems.

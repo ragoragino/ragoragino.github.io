@@ -44,3 +44,8 @@ sectionPagesMenu = "main"
     name = "Tech"
     url = "/tech/"
     weight = 10
+  [[menu.main]]
+    identifier = "explorations"
+    name = "Explorations"
+    url = "/explorations/"
+    weight = 10
