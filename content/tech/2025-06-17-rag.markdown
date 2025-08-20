@@ -63,3 +63,5 @@ There are a lot of potential traps in building efficient RAG systems these days.
 
 If you are interested to read more about RAG pipelines, here are some other great sources:
 - A good presentation about some more experimental RAG techniques: https://glaforge.dev/talks/2024/10/14/advanced-rag-techniques/
+- https://www.youtube.com/watch?v=w9u11ioHGA0
+- https://www.youtube.com/watch?v=W1MiZChnkfA
