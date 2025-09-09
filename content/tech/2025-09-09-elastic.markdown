@@ -7,7 +7,7 @@ categories: SoftwareEngineering Miscellaneous
 
 Elasticsearch is one of the stalwarts of the modern software engineering stack. What PostgreSQL is in the realm of database engines, Redis is for caching, or Kafka is for event-driven systems, Elasticsearch occupies a similar position in the domain of search engines. Its extensive full-text capabilities are the cornerstone of any search experience across the modern web. However, with LLMs causing such a major shift in the search space, Elasticsearch is trying to keep pace. It has been consistently adding features to support new use cases required for AI and agentic experiences. It now provides complete semantic search capabilities necessary for modern RAG, ranging from an almost fully automatic RAG solution to a fully customizable RAG pipeline. With this strong set of offerings in the domain of vector search, it has positioned itself exceptionally well for the era of the agentic web.
 
-### Good Old Full Text Search
+#### Good Old Full Text Search
 
 Elasticsearch has grown out of the problems related to full-text search, and the effort put into improving that experience has not gone to waste. It still shines as a classical search engine.
 
@@ -31,15 +31,15 @@ There is a new development in the realm of sparse vectors: transformer-trained s
 
 Models such as Splade or Elser (a proprietary Elasticsearch model) are transformer-based and can translate input text into semantically rich sparse vectors source [source](https://www.pinecone.io/learn/splade/). Elasticsearch currently supports integration with Elser. However, there are practical limitations to using these vectors. For example, the effective context size of the Elser model is only 512 tokens (compared to 32k for some vector embedding models), and its performance may degrade on larger datasets compared to traditional vector search.
 
-### Combined Search
+#### Combined Search
 
 A very practical way to benefit from different search strategies is to combine their result sets. This can be done using Reciprocal Rank Fusion, a straightforward method for merging different search results. Elasticsearch runs each retrieval strategy separately and then combines the results. You can thus run BM25, Elser, and dense vector search simultaneously. The returned result set is biased toward documents that appear in multiple retrieved sets and works well out of the box [source](https://www.elastic.co/guide/en/elasticsearch/reference/8.18/rrf.html).
 
-### Reranking
+#### Reranking
 
 Re-ranking is not a retrieval method per se but rather a process that reorganizes the retrieved document sets. It is essentially a cross-encoder transformer trained on query-document pairs. Its input, therefore, is not a single query as in classical embedding models, but a query-document pair, and its output is a similarity score. You can use a re-ranking model as a so-called text_similarity_reranker with any retriever, whether sparse or dense vector-based. The re-ranking model used to calculate the score can be plugged in through the Inference API, which is discussed below.
 
-### Inference APIs
+#### Inference APIs
 
 Elasticsearch has started adding more features to support higher layers of the AI search-related stack. It first added support for Inference API endpoints, allowing Elasticsearch to access externally hosted models. By enabling this, entire ingestion and embedding pipelines have become much easier to implement natively within the store itself.
 
@@ -47,7 +47,7 @@ The _semantic_text_ data type and _semantic_ search type have been added to supp
 
 At an even higher level of abstraction are so-called ingest pipelines. These allow users to specify a set of data transformations within Elasticsearch itself. As these are not directly related to AI search, I will stop here.
 
-### Conclusion
+#### Conclusion
 
 Elasticsearch has evolved far beyond its roots in classical full-text search. With support for dense vectors, transformer-based sparse vectors, hybrid retrieval methods, re-ranking, and Inference APIs, it now offers a comprehensive toolkit for building semantic and AI-powered search pipelines. While not a specialized vector database, Elasticsearch provides a balanced platform that combines proven full-text capabilities with modern semantic search features, making it a strong choice for retrieval-augmented generation and other emerging AI-driven applications.
 
