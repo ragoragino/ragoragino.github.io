@@ -1,0 +1,57 @@
+---
+layout: post
+title:  "Elasticsearch & AI"
+date:   2025-09-09 00:00:00 +0100
+categories: SoftwareEngineering Miscellaneous
+---
+
+Elasticsearch is one of the stalwarts of the modern software engineering stack. What PostgreSQL is in the realm of database engines, Redis is for caching, or Kafka is for event-driven systems, Elasticsearch occupies a similar position in the domain of search engines. Its extensive full-text capabilities are the cornerstone of any search experience across the modern web. However, with LLMs causing such a major shift in the search space, Elasticsearch is trying to keep pace. It has been consistently adding features to support new use cases required for AI and agentic experiences. It now provides complete semantic search capabilities necessary for modern RAG, ranging from an almost fully automatic RAG solution to a fully customizable RAG pipeline. With this strong set of offerings in the domain of vector search, it has positioned itself exceptionally well for the era of the agentic web.
+
+### Good Old Full Text Search
+
+Elasticsearch has grown out of the problems related to full-text search, and the effort put into improving that experience has not gone to waste. It still shines as a classical search engine.
+
+Elasticsearch indexes your textual data into an inverted index. This data structure maps each unique word or token to a list of documents that contain it, along with positional information and relevance scores. All text undergoes a process of analysis, during which each word is either filtered out or enriched. This allows for a more comprehensive search experience that takes into account, for example, word stems or synonyms. During search, Elasticsearch uses the BM25 algorithm to rank results based on relevance.
+
+#### Dense vectors
+
+The modern search experience would lose much of its value if it did not incorporate dense vectors, or so-called embeddings. Embeddings capture the semantic content of queries instead of merely retrieving results by simple keyword similarity. In Elasticsearch, the data type dense_vector is used for storing embeddings. These embeddings are automatically stored in an embeddings index (not an Elasticsearch index, but rather an index data structure), and currently, all vectors are automatically quantized to the bbq_hnsw type [source](https://www.elastic.co/search-labs/blog/better-binary-quantization-lucene-elasticsearch). his index is not a B-tree-type index familiar to users of relational databases, but one based on the so-called Hierarchical Navigable Small Worlds. It is also important to note that Elasticsearch still keeps the original vector for exact distance calculation ([source](https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/dense-vector#dense-vector-quantization)).
+
+#### kNN
+
+Once the embedding vectors are stored, you will want to search through them. Elasticsearch provides kNN search in two variants: approximate and exact. The exact variant simply performs distance calculations for all vectors that match the query terms, while the approximate variant uses HNSW to find a set of approximate neighbors. As one might guess, the exact computation does not require any indexing but is computationally prohibitive for larger datasets. That is where the approximate method comes in, using the HNSW index to produce a set of sensible candidates.
+
+When performing approximate search, there are multiple tweaks to consider for tuning the result set. The main one is the number of candidates that are searched within each shard and returned. It is no surprise that we are trading retrieval speed for quality here. To improve search quality, you can further reduce the set of filterable objects by using other non-vector fields. However, this also introduces non-negligible latency, as the index must be explored longer to produce the same result set. There have been improvements on the Lucene side (the search engine library underlying Elasticsearch) that should be released in Elasticsearch 9 [source](https://www.elastic.co/search-labs/blog/filtered-hnsw-knn-search). A final point to consider when performing searches is the segmentation of Elasticsearch indices. Elasticsearch stores all data in segments, one per shard per index. Each segment contains its own HNSW index, and the more segments there are, the longer it takes to search through them. You can optimize this by being very aggressive and either frequently merging segments or increasing their size. This works best if your data resembles logs or if you have mostly read-only indices [source](https://www.elastic.co/docs/deploy-manage/production-guidance/optimize-performance/approximate-knn-search).   
+
+#### Sparse vectors
+
+We have already touched on sparse vectors, even though I have not mentioned them explicitly. BM25 and its predecessor TF-IDF belong to this category. Sparse vectors, in general, are high-dimensional vectors composed of a significant number of 0s and only a few 1s. Text indexed by BM25 can be modeled as a vector where each index corresponds to a vocabulary item, and we assign a value of 1 only when the vocabulary item is present in the text. For obvious space reasons, Elasticsearch does not store text indices as sparse vectors but rather in more memory-efficient inverted indices.
+
+There is a new development in the realm of sparse vectors: transformer-trained sparse vectors. The idea behind them is to minimize the so-called vocabulary mismatch problem, where the query and the document refer to the same concept but use different words. By using transformers, we can expand the text to capture not only the exact words but also words that are close neighbors in the semantic multidimensional space. Elasticsearch performs a similar expansion natively in its analyzers—it always includes some common synonyms when indexing documents. However, this expansion is fully hardcoded and does not capture the full richness of language constructs.
+
+Models such as Splade or Elser (a proprietary Elasticsearch model) are transformer-based and can translate input text into semantically rich sparse vectors source [source](https://www.pinecone.io/learn/splade/). Elasticsearch currently supports integration with Elser. However, there are practical limitations to using these vectors. For example, the effective context size of the Elser model is only 512 tokens (compared to 32k for some vector embedding models), and its performance may degrade on larger datasets compared to traditional vector search.
+
+### Combined Search
+
+A very practical way to benefit from different search strategies is to combine their result sets. This can be done using Reciprocal Rank Fusion, a straightforward method for merging different search results. Elasticsearch runs each retrieval strategy separately and then combines the results. You can thus run BM25, Elser, and dense vector search simultaneously. The returned result set is biased toward documents that appear in multiple retrieved sets and works well out of the box [source](https://www.elastic.co/guide/en/elasticsearch/reference/8.18/rrf.html).
+
+### Reranking
+
+Re-ranking is not a retrieval method per se but rather a process that reorganizes the retrieved document sets. It is essentially a cross-encoder transformer trained on query-document pairs. Its input, therefore, is not a single query as in classical embedding models, but a query-document pair, and its output is a similarity score. You can use a re-ranking model as a so-called text_similarity_reranker with any retriever, whether sparse or dense vector-based. The re-ranking model used to calculate the score can be plugged in through the Inference API, which is discussed below.
+
+### Inference APIs
+
+Elasticsearch has started adding more features to support higher layers of the AI search-related stack. It first added support for Inference API endpoints, allowing Elasticsearch to access externally hosted models. By enabling this, entire ingestion and embedding pipelines have become much easier to implement natively within the store itself.
+
+The _semantic_text_ data type and _semantic_ search type have been added to support automatic creation of embeddings by calling a model through a specific Inference API. Of course, by ceding control of the call, users also lose the ability to perform more advanced customizations, such as retry policies, complex failure handling, or respecting and adjusting to rate limits [source](https://www.elastic.co/docs/solutions/search/semantic-search/semantic-search-inference). 
+
+At an even higher level of abstraction are so-called ingest pipelines. These allow users to specify a set of data transformations within Elasticsearch itself. As these are not directly related to AI search, I will stop here.
+
+### Conclusion
+
+Elasticsearch has evolved far beyond its roots in classical full-text search. With support for dense vectors, transformer-based sparse vectors, hybrid retrieval methods, re-ranking, and Inference APIs, it now offers a comprehensive toolkit for building semantic and AI-powered search pipelines. While not a specialized vector database, Elasticsearch provides a balanced platform that combines proven full-text capabilities with modern semantic search features, making it a strong choice for retrieval-augmented generation and other emerging AI-driven applications.
+
+When implementing a production-ready system, the information above provides only an overview of core AI capabilities. Teams deploying AI applications built with Elasticsearch should not disregard adjacent topics such as system scaling (sharding, replication, segment merging) and LLM ops (data chunking strategies, retrieval benchmarking, etc.) besides others.
+
+Sources:
+https://www.elastic.co/search-labs/blog/elasticsearch-vector-large-scale-part1
