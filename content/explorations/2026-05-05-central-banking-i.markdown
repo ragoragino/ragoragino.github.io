@@ -46,7 +46,7 @@ After the FOMC decides on the monetary policy objective, regardless of which fra
 
 The oldest monetary tool in the toolbox of the Fed is its **discount window**, a simple lending facility where depository (which includes commercial banks and some other financial institutions) can borrow money in exchange for collateral. This was already introduced in the founding legislation and was regarded as the core tool for solidifying the Fed's position as a lender-of-last-resort. The discount window has been open to this day and is regarded as one of the tools for ensuring financial stability by guaranteeing to stand ready to provide liquidity into the sector when needed. There are two main rates, the **primary and secondary credit rate**, that are provided to financial institutions based on their credit and liquidity circumstances. These lending rates are effectively limiting the upper bound at which banks lend to themselves - if they can borrow the money from the Fed for a lower interest rate, there is no reason for them to resort to the inter-bank market for liquidity. This is at least the theory ([source](https://www.federalreserve.gov/regreform/discount-window.htm)). Practically speaking, there has been a stigma associated with using the discount window for a long time. Banks were afraid that by using the window they would signal to other market participants that they might be experiencing financial distress. Even though the individual counterparties are not publicly disclosed until 2 years after the loan was granted, there are more nuanced signals the market participants can use to infer the identity of the borrower. Therefore, banks would rather turn to inter-bank lending facilities, even though they have to pay higher interest on their loans. This stigma has been persisting in the system to some level (see [here](https://www.newyorkfed.org/medialibrary/media/research/staff_reports/sr1137.pdf?sc_lang=en) and [here](https://www.federalreserve.gov/econres/notes/feds-notes/stigma-and-the-discount-window-20171219.html)), so there is an ongoing debate about the measures the Fed needs to take to boost the uptake in the usage of its usage. Most recent market data has been providing some evidence that the primary window has been seeing some uptick from regular financial institutions (most significantly during the Silicon Valley Bank collapse in 2023), but it's probably still too early to definitively proclaim its definitive comeback.
 
-![Discount Window Usage since 2002](/assets/images/essays/mosaic/discount.png)
+![Discount Window Usage since 2002](/assets/images/explorations/central-banking-i/discount.png)
 _The Fed's primary and secondary credit lines usage since 2002, source: https://fred.stlouisfed.org/graph/?g=1UScu_
 
 #### The Fed Funds Rate
@@ -63,12 +63,12 @@ After Bear Stearns and especially Lehman went into liquidation in 2008, the Fed 
 
 The Fed decided to step into the financial system by injecting significant amounts of liquidity through large-scale asset purchases. This process of so-called **quantitative easing** (QE) continued in three distinct phases from 2008 until 2014 and targeted primarily mortgage-backed securities and Treasuries. In the beginning, the purported target was removing risky mortgage-related assets from the market and providing enough liquidity for the stressed financial system. In the subsequent phases, the target was improving the weak labor market conditions by pushing long-term interest rates down through enormous purchases of long-term Treasuries. After the US economy started showing significant improvements in terms of inflation and employment targets, the Fed decided to terminate the program at the end of 2014. It resumed significant open market purchases again during the pandemic to stabilize the faltering US economy. Since 2022, it has gradually moved to a process of reversing its balance sheet expansion through rolling off its assets (in addition to selling some of them) called **quantitative tightening** (QT). However, this process has been much slower than expected and currently the balance sheet is still at around 6.5 trillion US dollars, composed primarily of US Treasuries (around 65%) and MBS (30%).
 
-![The Fed's balance sheet, since 2002](/assets/images/essays/mosaic/fredgraph.png)
+![The Fed's balance sheet, since 2002](/assets/images/explorations/central-banking-i/fredgraph.png)
 _The Fed's assets since 2002, source https://fred.stlouisfed.org/series/WALCL_
 
 Injecting that much liquidity into the system in the span of the last 15 years did, however, have unintended consequences for the functioning of pre-existing monetary policy tools. Banks gradually stopped feeling the need to borrow liquidity from each other anymore for settlement and reserve purposes as they were already holding enough liquidity. Thus, any additional purchases or sales of Treasuries by the Fed won't move the needle in terms of rates. The corridor system gave way to a **floor** or an **ample reserves** system.
 
-![Size of the Fed Funds Market, from: https://www.biancoresearch.com/gas-prices-remain-low-7/](/assets/images/essays/mosaic/the_size_of_the_fed_funds_market.png)
+![Size of the Fed Funds Market, from: https://www.biancoresearch.com/gas-prices-remain-low-7/](/assets/images/explorations/central-banking-i/the_size_of_the_fed_funds_market.png)
 _Size of the Fed Funds Market, source https://www.biancoresearch.com/what-will-become-of-the-funds-rate-video/_
 
 In the ample reserves system, the interbank money market for reserves is much less critical. Banks hold a sufficient amount of reserves to meet their legal obligations without the need for borrowing in order to fulfill their reserves obligations. Therefore, instead of relying on market pricing through adjusting the amount of reserves in the financial system, the Fed changed its strategy and stepped into the interbank market by setting the rates itself. It's still borrowing and lending between banks that set the effective funds rate, but Fed directly establishes bounds of that rate by using multiple so-called **administered rates**.
@@ -79,7 +79,7 @@ In contrast to ON RRP stands the **standing repo facility** (SRF), where the Fed
 
 These three rates are now the cornerstone of the Fed's toolbox to affect interbank lending rates. They closely track each other, with the lending SRF being the ceiling, IORB mid rate, and ON RRP constituting the floor. The difference between them has been in the range of 10-20 basis points for the past couple of years. The effective Fed funds rate, i.e. the rate at which banks and other financial institutions actually lend to each other, fluctuates within the limits set by these rates.
 
-![The Fed rates](/assets/images/essays/mosaic/rates.png)
+![The Fed rates](/assets/images/explorations/central-banking-i/rates.png)
 
 _IORB, ON RRP, SRF, and effective Fed funds rate, since 2025, source: https://fred.stlouisfed.org/graph/?g=1TDR8_
 
@@ -101,7 +101,7 @@ This tool became especially important after 2008, when policy rates were pushed 
 
 ### Balance Sheet
 
-![The Fed's balance sheet](/assets/images/essays/mosaic/balance_sheet.webp)
+![The Fed's balance sheet](/assets/images/explorations/central-banking-i/balance_sheet.webp)
 _The Fed's balance sheet evolution, source: https://tellerwindow.newyorkfed.org/2024/08/06/the-role-of-the-federal-reserves-balance-sheet-in-monetary-policy-implementation/_
 
 Now that we have a good understanding of the Fed's policy tools and their evolution, the composition of its balance sheet should not come as a surprise.
@@ -112,7 +112,7 @@ On the liabilities side, the biggest item is the reserves of depository institut
 
 ### Transmission of Monetary Policy
 
-![Monetary policy chain: mandate → framework → tools → transmission](/assets/images/essays/mosaic/monetary_transmission_flow.png)
+![Monetary policy chain: mandate → framework → tools → transmission](/assets/images/explorations/central-banking-i/monetary_transmission_flow.png)
 _Chain from statute to real economy_
 
 After the Congress decides on the Fed's mandate, the Fed's FOMC is responsible for the framework of how to align that mandate with real-world economic circumstances through targeting short-term (through the Fed funds rate) and long-term (through QE) interest rates in the economy. The Fed's New York Trading Desk then uses available policy tools to achieve FOMC's target. The final leg of the puzzle is what happens once these targets are successfully implemented: how do they translate to price stability and employment outcomes? This is the basis of the **monetary transmission mechanism**.
